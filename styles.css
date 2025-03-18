@@ -1,0 +1,912 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+    font-family: 'Heebo', Arial, sans-serif;
+    transition: all 0.3s ease;
+    color: #fff;
+}
+
+body.light-mode {
+    background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+    color: #000;
+}
+
+canvas {
+    display: block;
+    cursor: grab;
+    transition: background 0.5s ease;
+}
+
+canvas:active {
+    cursor: grabbing;
+}
+
+.controls {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    max-width: calc(100% - 20px);
+    padding: 5px;
+}
+
+.file-controls, .module-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.file-controls button,
+.toggle-mode {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+}
+
+.light-mode .file-controls button,
+.light-mode .toggle-mode {
+    background: rgba(0, 0, 0, 0.1);
+    color: black;
+}
+
+.file-controls button:hover,
+.toggle-mode:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.light-mode .file-controls button:hover,
+.light-mode .toggle-mode:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.color-picker {
+    display: flex;
+    align-items: center;
+}
+
+.color-picker input {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: transparent;
+}
+
+.sidebar {
+    position: relative;
+    width: 300px;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #666 transparent;
+    direction: rtl;
+}
+
+.sidebar > * {
+    direction: ltr;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+    background-color: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background-color: #666;
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+body.light-mode .sidebar::-webkit-scrollbar-thumb {
+    background-color: #999;
+}
+
+.sidebar.visible {
+    transform: translateX(300px);
+}
+
+.sidebar button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 5px;
+}
+
+.sidebar button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar button.active {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.sidebar-toggle {
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 24px;
+    border-radius: 0 5px 5px 0;
+    backdrop-filter: blur(10px);
+}
+
+.sidebar.visible + .sidebar-toggle {
+    transform: translate(300px, -50%);
+}
+
+/* Light mode adjustments */
+body.light-mode .sidebar {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+body.light-mode .sidebar button {
+    color: black;
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+body.light-mode .sidebar button:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .sidebar button.active {
+    background: rgba(0, 0, 0, 0.2);
+    border-color: rgba(0, 0, 0, 0.4);
+}
+
+body.light-mode .sidebar-toggle {
+    background: rgba(255, 255, 255, 0.8);
+    color: black;
+}
+
+/* RTL Support */
+body.rtl .sidebar-container {
+    left: auto;
+    right: -300px;
+}
+
+body.rtl .sidebar-container.visible {
+    transform: translateX(-300px);
+}
+
+body.rtl .sidebar-toggle {
+    left: auto;
+    right: 100%;
+    border-radius: 5px 0 0 5px;
+}
+
+body.rtl .sidebar.visible + .sidebar-toggle {
+    transform: translate(-300px, -50%);
+}
+
+.tooltip {
+    position: fixed;
+    display: none;
+    background: rgba(26, 26, 26, 0.95);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    z-index: 1000;
+    pointer-events: none;
+    min-width: 250px;
+    max-width: 350px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: left 0.1s ease-out, top 0.1s ease-out;
+}
+
+.tooltip-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.tooltip-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    margin-right: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px;
+}
+
+.tooltip-body {
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.tooltip-body p {
+    margin: 0 0 10px 0;
+}
+
+.tooltip-metadata {
+    margin-top: 10px;
+}
+
+.tooltip-metadata pre {
+    margin: 5px 0 15px 0;
+    white-space: pre-wrap;
+    font-family: inherit;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.light-mode .tooltip-metadata pre {
+    color: rgba(0, 0, 0, 0.8);
+}
+
+.module-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+body.light-mode .tooltip {
+    background: rgba(255, 255, 255, 0.95);
+    color: black;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.module-form-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+#moduleForm {
+    display: none;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+#moduleForm.show {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#moduleForm input {
+    padding: 8px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.score-input {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.score-input input {
+    width: 80px;
+}
+
+/* Add these styles to match the existing design */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #1a1a1a;
+    min-width: 300px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    z-index: 1000;
+    border-radius: 8px;
+    border: 1px solid #333;
+    padding: 15px;
+}
+
+.dropdown-content.show {
+    display: block;
+}
+
+#moduleForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#moduleForm input {
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+.score-input {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-color);
+}
+
+.score-input input {
+    width: 80px;
+}
+
+.submit-btn {
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.submit-btn:hover {
+    opacity: 0.9;
+}
+
+/* Update the file-controls to accommodate the dropdown */
+.file-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.file-controls button {
+    padding: 5px 10px;
+}
+
+.footer {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+.social-icons {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.social-icons a,
+.social-icons a:visited {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: all 0.3s;
+    font-size: 20px;
+}
+
+.contact-info {
+    display: flex;
+    gap: 20px;
+    font-size: 12px;
+}
+
+.contact-info a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.contact-info a:hover {
+    color: white;
+}
+
+/* Light mode adjustments */
+body.light-mode .footer {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+body.light-mode .contact-info a,
+body.light-mode .social-icons a,
+body.light-mode .social-icons a:visited {
+    color: rgba(0, 0, 0, 0.8);
+}
+
+body.light-mode .contact-info a:hover,
+body.light-mode .social-icons a:hover {
+    color: black;
+}
+
+/* Mobile adjustments */
+@media (max-width: 520px) {
+    .footer {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .social-icons a,
+    .social-icons a:visited {
+        font-size: 24px;
+    }
+
+    .contact-info {
+        font-size: 14px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 380px) {
+    .contact-info {
+        gap: 10px;
+    }
+}
+
+.social-icons a,
+.social-icons a:visited {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: all 0.3s;
+    font-size: 24px;
+}
+
+.profile-logo {
+    font-size: 26px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 520px) {
+    .social-icons a,
+    .social-icons a:visited {
+        font-size: 32px;
+    }
+
+    .profile-logo {
+        font-size: 34px;
+    }
+
+    /* Ensure sidebar is usable on mobile */
+    .sidebar button {
+        font-size: 20px;
+        padding: 8px 16px;
+    }
+
+    .sidebar-toggle {
+        width: 40px;
+        height: 60px;
+        font-size: 32px;
+    }
+}
+
+/* Desktop sizes */
+.social-icons a,
+.social-icons a:visited {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: all 0.3s;
+    font-size: 24px;
+}
+
+.profile-logo {
+    font-size: 26px;
+}
+
+/* Tablet/Medium screens */
+@media (max-width: 768px) {
+    .social-icons a,
+    .social-icons a:visited {
+        font-size: 22px;
+    }
+
+    .profile-logo {
+        font-size: 24px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 520px) {
+    .social-icons a,
+    .social-icons a:visited {
+        font-size: 20px;
+    }
+
+    .profile-logo {
+        font-size: 22px;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 380px) {
+    .social-icons a,
+    .social-icons a:visited {
+        font-size: 18px;
+    }
+
+    .profile-logo {
+        font-size: 20px;
+    }
+
+    .social-icons {
+        gap: 12px; /* Reduce gap between icons */
+    }
+}
+
+/* Text size controls */
+.text-size-controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.text-size-controls button {
+    padding: 5px 10px;
+    margin: 0 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+}
+
+/* Language toggle */
+.language-toggle {
+    position: fixed;
+    top: 20px;
+    right: 100px;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+/* RTL support */
+.rtl {
+    direction: rtl;
+}
+
+/* Chatbot window */
+.chatbot-window {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 300px;
+    height: 400px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    transition: height 0.3s;
+}
+
+.chatbot-window.minimized {
+    height: 40px;
+}
+
+.chatbot-header {
+    padding: 10px;
+    background: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chatbot-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.chatbot-input {
+    padding: 10px;
+    border-top: 1px solid #ccc;
+    display: flex;
+    gap: 10px;
+}
+
+.chatbot-input input {
+    flex: 1;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.user-message, .bot-message {
+    margin: 5px 0;
+    padding: 8px;
+    border-radius: 8px;
+    max-width: 80%;
+}
+
+.user-message {
+    background: #007bff;
+    color: white;
+    margin-left: auto;
+}
+
+.bot-message {
+    background: #f0f0f0;
+    margin-right: auto;
+}
+
+.minimized .chatbot-messages,
+.minimized .chatbot-input {
+    display: none;
+}
+
+/* Update the controls styling */
+.text-size-controls,
+.language-toggle {
+    position: static; /* Remove fixed positioning */
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Update the controls container */
+.controls {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    max-width: calc(100% - 20px);
+    padding: 5px;
+}
+
+/* Style all control buttons consistently */
+.file-controls button,
+.text-size-controls button,
+.language-toggle,
+.toggle-mode,
+#editModule {
+    background: rgba(0, 0, 0, 0.8);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+    font-family: 'Heebo', Arial, sans-serif;
+    font-size: 14px;
+}
+
+/* Light mode adjustments */
+.light-mode .file-controls button,
+.light-mode .text-size-controls button,
+.light-mode .language-toggle,
+.light-mode .toggle-mode,
+.light-mode #editModule {
+    background: rgba(0, 0, 0, 0.1);
+    color: black;
+}
+
+/* Hover states */
+.file-controls button:hover,
+.text-size-controls button:hover,
+.language-toggle:hover,
+.toggle-mode:hover,
+#editModule:not(.disabled):hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.light-mode .file-controls button:hover,
+.light-mode .text-size-controls button:hover,
+.light-mode .language-toggle:hover,
+.light-mode .toggle-mode:hover,
+.light-mode #editModule:not(.disabled):hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* Disabled state for edit button */
+#editModule.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Controls container */
+.controls {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    max-width: calc(100% - 20px);
+    padding: 5px;
+}
+
+/* Add to your existing CSS */
+.control-button {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.2;
+    white-space: normal;
+}
+
+.rtl .control-button {
+    font-family: 'Heebo', Arial, sans-serif;
+    direction: rtl;
+}
+
+/* Mobile adjustments */
+@media screen and (max-width: 480px) {
+    .controls {
+        gap: 5px;
+    }
+
+    .control-button,
+    #editModule {
+        padding: 8px 12px;
+        font-size: 14px;
+        min-width: auto;
+    }
+}
+
+.mini-tooltip {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    border: none !important;
+}
+
+.mini-tooltip img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+#tooltip {
+    pointer-events: auto;  /* Make sure tooltip can receive events */
+    z-index: 1000;        /* Ensure tooltip is above canvas */
+}
+
+#moduleCloud {
+    touch-action: none;   /* Prevent default touch actions */
+    position: relative;   /* Ensure proper stacking context */
+    z-index: 1;
+}
+
+/* Edit module button styling */
+#editModule {
+    background: rgba(255, 255, 255, 0.1);  /* Default dark mode state */
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+}
+
+#editModule:disabled,
+#editModule.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Active state in dark mode */
+#editModule:not(:disabled) {
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    opacity: 1;
+}
+
+/* Light mode adjustments */
+.light-mode #editModule {
+    background: rgba(0, 0, 0, 0.1);  /* Default light mode state */
+    color: black;
+}
+
+/* Active state in light mode */
+.light-mode #editModule:not(:disabled) {
+    background: rgba(0, 0, 0, 0.1);  /* Light grey background */
+    color: black;                     /* Dark text */
+}
+
+.tooltip-favicon, .tooltip-name {
+    text-decoration: none;
+    color: inherit;
+}
+
+.tooltip-favicon {
+    display: inline-block;
+    margin-right: 8px;
+}
+
+.tooltip-favicon img {
+    vertical-align: middle;
+}
+
+.tooltip-name:hover {
+    text-decoration: underline;
+}
+
+/* Add a container for both sidebar and toggle */
+.sidebar-container {
+    position: fixed;
+    left: -300px;
+    top: 0;
+    height: 100%;
+    z-index: 1001;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-container.visible {
+    transform: translateX(300px);
+}
+
+.sidebar-toggle {
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 24px;
+    border-radius: 0 5px 5px 0;
+    backdrop-filter: blur(10px);
+}
+
+/* RTL Support */
+body.rtl .sidebar-container {
+    left: auto;
+    right: -300px;
+}
+
+body.rtl .sidebar-container.visible {
+    transform: translateX(-300px);
+}
+
+body.rtl .sidebar-toggle {
+    left: auto;
+    right: 100%;
+    border-radius: 5px 0 0 5px;
+}
+
+body.rtl .sidebar.visible + .sidebar-toggle {
+    transform: translate(-300px, -50%);
+}

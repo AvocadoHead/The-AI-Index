@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-36D3N7VSMG"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-36D3N7VSMG');
+    </script>
+    <title>AI Module Cloud</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="sidebar-container">
+        <div class="sidebar">
+            <button data-category="all" class="active">All</button>
+            <button data-category="LLM">LLM | Language Models</button>
+            <button data-category="USE">USE | AI Tools</button>
+            <button data-category="T2I">T2I | Text to Image</button>
+            <button data-category="I2I">I2I | Image to Image</button>
+            <button data-category="T2V">T2V | Text to Video</button>
+            <button data-category="I2V">I2V | Image to Video</button>
+            <button data-category="V2V">V2V | Video Repaint</button>
+            <button data-category="3D">3D | 3D Tools</button>
+            <button data-category="DES">DES | Design</button>
+            <button data-category="UPS">UPS | Upscale/Enhance</button>
+            <button data-category="AUD">AUD | Audio</button>
+            <button data-category="VID">VID | Video Tools</button>
+            <button data-category="UI/UX">UI/UX</button>
+            <button data-category="ANI">ANI | Animation</button>
+            <button data-category="FCE">FCE | Face Editing</button>
+            <button data-category="SEA">SEA | AI Search</button>
+            <button data-category="CON">CON | Content Generation</button>
+            <button data-category="PRE">PRE | Presentation Creation</button>
+            <button data-category="I23">I23 | Image to 3D</button>
+            <button data-category="T2S">T2S | Text to Speech</button>
+            <button data-category="S2T">S2T | Speech to Text</button>
+            <button data-category="VCL">VCL | Voice Cloning</button>
+            <button data-category="MUS">MUS | Music Generation</button>
+            <button data-category="DEV">DEV | Development</button>
+            <button data-category="GAM">GAM | Gaming</button>
+            <button data-category="ML">ML | Machine Learning</button>
+        </div>
+        <button class="sidebar-toggle">❯</button>
+    </div>
+
+    <div class="controls">
+        <div class="file-controls">
+            <button id="saveIndex" data-translate="saveIndex">Save<br>Index</button>
+            <button id="loadIndex" data-translate="loadIndex">Load<br>Index</button>
+            <div class="module-controls">
+                <div class="dropdown">
+                    <button id="addModule" data-translate="addModule">Add<br>Module</button>
+                    <div class="dropdown-content">
+                        <form id="moduleForm">
+                            <input type="text" id="moduleName" placeholder="Module Name" required>
+                            <input type="text" id="moduleUrl" placeholder="Module URL" required>
+                            <input type="text" id="moduleCategories" placeholder="Categories (e.g., chat:90, image:80)" required>
+                            <button type="submit" class="submit-btn">Add Module</button>
+                        </form>
+                    </div>
+                </div>
+                <button id="deleteModule" data-translate="deleteModule">Delete<br>Module</button>
+                <div class="dropdown">
+                    <button id="editModule" data-translate="editModule">Edit<br>Module</button>
+                    <div id="editModuleDropdown" class="dropdown-content">
+                        <form id="editModuleForm">
+                            <input type="text" id="editModuleName" placeholder="Module Name" required>
+                            <input type="text" id="editModuleUrl" placeholder="Module URL" required>
+                            <input type="text" id="editModuleCategories" placeholder="Categories (e.g., chat:90, image:80)" required>
+                            <button type="submit" class="submit-btn">Update Module</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <input type="file" id="fileInput" accept=".js,.txt" style="display: none;">
+        </div>
+        <div class="color-picker">
+            <input type="color" id="bgColor" value="#1a1a1a">
+        </div>
+    </div>
+
+    <div id="tooltip" class="tooltip"></div>
+    <canvas id="moduleCloud"></canvas>
+    <script src="modules.js"></script>
+    <script src="script.js"></script>
+    <div class="footer">
+        <div class="social-icons">
+            <!-- Profile with existing link -->
+            <a href="https://avocadohead.github.io/Eyal-Izenman-Portfolio/" target="_blank" class="profile-logo">
+                <i class="fas fa-user-circle"></i>
+            </a>
+            <!-- Existing social links -->
+            <a href="https://www.facebook.com/Eyal.Izenman/" target="_blank">
+                <i class="fab fa-facebook"></i>
+            </a>
+            <a href="https://www.instagram.com/ei.sense" target="_blank">
+                <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://www.linkedin.com/in/eyal-izenman-37a0471b/" target="_blank">
+                <i class="fab fa-linkedin"></i>
+            </a>
+            <a href="https://buymeacoffee.com/Optopia" target="_blank">
+                <i class="fas fa-coffee"></i>
+            </a>
+            <a href="https://www.hollo.co.il/?section=9&customer=14908" target="_blank">
+                <i class="fas fa-tshirt"></i>
+            </a>
+        </div>
+        <div class="contact-info">
+            <a href="mailto:Eyalizenman@Gmail.com">Eyalizenman@Gmail.com</a>
+            <a href="tel:+97236030603">WhatsApp: +972 3 6030603</a>
+        </div>
+    </div>
+</body>
+</html>
