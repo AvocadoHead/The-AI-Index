@@ -129,15 +129,16 @@
             <p>Please sign in to access the AI module collection</p>
             <div class="auth-buttons">
                 <div id="g_id_onload"
-                     data-client_id="YOUR_GOOGLE_CLIENT_ID"
+                     data-client_id="421296945393-4068e67sgd0aral28ic46vt57ej9gd90.apps.googleusercontent.com"
                      data-callback="handleCredentialResponse">
                 </div>
                 <div class="g_id_signin"
                      data-type="standard"
-                     data-shape="rectangular"
+                     data-size="large"
                      data-theme="outline"
                      data-text="sign_in_with"
-                     data-size="large">
+                     data-shape="rectangular"
+                     data-logo_alignment="left">
                 </div>
             </div>
             <div id="emailAuthForm" style="display: none;">
@@ -161,5 +162,8 @@
             <button id="requestPremium">Email for Premium Access</button>
         </div>
     </div>
+
+    <!-- Add this right before the closing </body> tag -->
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
 </body>
 </html>
