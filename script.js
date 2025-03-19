@@ -1638,6 +1638,48 @@ class ModuleCloud {
 }
 
 // Initialize the cloud when the document is ready
-document.addEventListener('DOMContentLoaded', () => {
-    window.moduleCloud = new ModuleCloud();
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if the user is authenticated
+    checkAuthenticationStatus().then(isAuthenticated => {
+        if (!isAuthenticated) {
+            // Show login modal if not authenticated
+            document.getElementById('authModal').style.display = 'block';
+        } else {
+            // Load the module cloud if authenticated
+            loadModuleCloud();
+        }
+    });
 });
+
+function checkAuthenticationStatus() {
+    // This function should return a promise that resolves to true if the user is authenticated
+    // and false otherwise. This could involve checking a cookie, local storage, or making an API call.
+    return new Promise((resolve, reject) => {
+        // Example: Check a cookie or make an API call
+        const isAuthenticated = false; // Replace with actual authentication check
+        resolve(isAuthenticated);
+    });
+}
+
+function loadModuleCloud() {
+    // Your existing code to load the module cloud
+}
+
+function handleCredentialResponse(response) {
+    const data = jwt_decode(response.credential);
+    const email = data.email;
+
+    // Check if the user has access to the free tier
+    if (isFreeTierUser(email)) {
+        document.getElementById('authModal').style.display = 'none';
+        loadModuleCloud();
+    } else {
+        alert('You do not have access to the free tier.');
+    }
+}
+
+function isFreeTierUser(email) {
+    // Implement your logic to check if the email has access to the free tier
+    // This could involve checking a database or a predefined list
+    return true; // Replace with actual check
+}
