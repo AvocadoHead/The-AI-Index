@@ -1667,8 +1667,6 @@ function handleCredentialResponse(response) {
         // Decode the JWT token from Google
         const decoded = jwt_decode(response.credential);
         const email = decoded.email;
-        const name = decoded.name;
-        const picture = decoded.picture;
         
         console.log("Logged in as: " + email);
         
@@ -1680,7 +1678,7 @@ function handleCredentialResponse(response) {
         document.getElementById('authModal').style.display = 'none';
         
         // Initialize the module cloud
-        window.moduleCloud = new ModuleCloud();
+        loadModuleCloud();
         
     } catch (error) {
         console.error("Error processing login:", error);
