@@ -1674,11 +1674,8 @@ function handleCredentialResponse(response) {
         localStorage.setItem('userToken', response.credential);
         localStorage.setItem('userEmail', email);
         
-        // Close modal and load the module cloud
-        document.getElementById('authModal').style.display = 'none';
-        
-        // Initialize the module cloud
-        loadModuleCloud();
+        // Redirect to the dashboard page
+        window.location.href = 'https://avocadohead.github.io/The-AI-Index/dashboard';
         
     } catch (error) {
         console.error("Error processing login:", error);
