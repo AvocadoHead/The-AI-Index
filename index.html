@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
     <div class="sidebar-container">
@@ -117,6 +118,47 @@
         <div class="contact-info">
             <a href="mailto:Eyalizenman@Gmail.com">Eyalizenman@Gmail.com</a>
             <a href="tel:+97236030603">WhatsApp: +972 3 6030603</a>
+        </div>
+    </div>
+
+    <!-- Authentication Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Welcome to AI Module Cloud</h2>
+            <p>Please sign in to access the AI module collection</p>
+            <div class="auth-buttons">
+                <div id="g_id_onload"
+                     data-client_id="YOUR_GOOGLE_CLIENT_ID"
+                     data-callback="handleCredentialResponse">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-shape="rectangular"
+                     data-theme="outline"
+                     data-text="sign_in_with"
+                     data-size="large">
+                </div>
+            </div>
+            <div id="emailAuthForm" style="display: none;">
+                <input type="email" id="authEmail" placeholder="Your email">
+                <input type="password" id="authPassword" placeholder="Your password">
+                <div class="auth-actions">
+                    <button id="signInButton">Sign In</button>
+                    <button id="signUpButton">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Premium Modal -->
+    <div id="premiumModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Upgrade to Premium</h2>
+            <p>Get access to over 400 AI modules for a one-time payment of $5.</p>
+            <p>For now, please send an email to <a href="mailto:Eyalizenman@gmail.com">Eyalizenman@gmail.com</a> to request premium access.</p>
+            <button id="requestPremium">Email for Premium Access</button>
         </div>
     </div>
 </body>
