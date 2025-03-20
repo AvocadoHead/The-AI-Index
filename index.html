@@ -141,5 +141,48 @@
             <button id="requestPremium">Email for Premium Access</button>
         </div>
     </div>
+
+    <!-- Include Supabase from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.js"></script>
+    <script>
+        // Initialize Supabase client
+        const { createClient } = supabase;
+        const supabaseUrl = 'https://your-supabase-url.supabase.co'; // Replace with your Supabase URL
+        const supabaseKey = 'your-anon-key'; // Replace with your Supabase anon key
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        // Function to handle sign up
+        async function signUp(email, password) {
+            const { user, error } = await supabase.auth.signUp({ email, password });
+            if (error) {
+                console.error('Error signing up:', error.message);
+            } else {
+                console.log('Sign up successful:', user);
+            }
+        }
+
+        // Function to handle sign in
+        async function signIn(email, password) {
+            const { user, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                console.error('Error signing in:', error.message);
+            } else {
+                console.log('Sign in successful:', user);
+            }
+        }
+
+        // Event listeners for sign in and sign up buttons
+        document.getElementById('signInButton').addEventListener('click', () => {
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            signIn(email, password);
+        });
+
+        document.getElementById('signUpButton').addEventListener('click', () => {
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            signUp(email, password);
+        });
+    </script>
 </body>
 </html>
