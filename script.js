@@ -1,3 +1,5 @@
+import { createClient } from '@supabase/supabase-js';
+
 class AIModule {
     constructor(name, categories, url, scores = {}) {
         this.name = name;
@@ -1545,19 +1547,20 @@ class ModuleCloud {
     }
 
     setupDarkModeToggle() {
-        const darkModeButton = document.createElement('button');
-        darkModeButton.className = 'control-button toggle-mode';
-        darkModeButton.innerHTML = '🌓';
-        darkModeButton.title = 'Toggle Dark Mode';
+        const darkModeButton = document.getElementById('toggleMode');
+        console.log('Toggle button:', darkModeButton); // Debugging line
 
-        const controls = document.querySelector('.controls');
-        controls.appendChild(darkModeButton);
+        if (!darkModeButton) {
+            console.error('Toggle mode button not found!');
+            return; // Exit if the button is not found
+        }
 
         darkModeButton.onclick = () => {
-            document.body.classList.toggle('light-mode');
-            this.canvas.style.backgroundColor = 
-                document.body.classList.contains('light-mode') ? 
-                '#ffffff' : '#1a1a1a';
+            console.log('Toggle button clicked'); // Debugging line
+            document.body.classList.toggle('light-mode'); // Toggle light mode class
+            const isLightMode = document.body.classList.contains('light-mode');
+            document.body.style.backgroundColor = isLightMode ? '#ffffff' : '#1a1a1a'; // Change background color
+            document.querySelector('#moduleCloud').style.backgroundColor = isLightMode ? '#ffffff' : '#1a1a1a'; // Change module cloud background
         };
     }
 
@@ -1637,11 +1640,16 @@ class ModuleCloud {
     }
 }
 
-// Initialize the cloud when the document is ready
+// Initialize Supabase client
+const supabaseUrl = 'https://your-supabase-url.supabase.co'; // Replace with your Supabase URL
+const supabaseKey = 'your-anon-key'; // Replace with your Supabase anon key
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 document.addEventListener('DOMContentLoaded', function() {
     // Set default to light mode
     document.body.classList.add('light-mode');
-    
+    document.body.style.backgroundColor = '#ffffff';
+
     // Check if the user is authenticated
     checkAuthenticationStatus().then(isAuthenticated => {
         if (!isAuthenticated) {
@@ -1652,34 +1660,78 @@ document.addEventListener('DOMContentLoaded', function() {
             loadModuleCloud();
         }
     });
+
+    // Event listeners for sign in and sign up buttons
+    document.getElementById('signInButton').addEventListener('click', signIn);
+    document.getElementById('signUpButton').addEventListener('click', signUp);
+
+    // Event listener for login button
+    document.getElementById('loginButton').addEventListener('click', () => {
+        document.getElementById('authModal').style.display = 'block';
+    });
+
+    // Close modal functionality
+    document.querySelector('.close-modal').addEventListener('click', () => {
+        document.getElementById('authModal').style.display = 'none';
+    });
+
+    // Setup dark mode toggle
+    setupDarkModeToggle();
 });
 
-function checkAuthenticationStatus() {
-    return new Promise((resolve) => {
-        // Check if we have a user token in localStorage
-        const userToken = localStorage.getItem('userToken');
-        resolve(!!userToken); // Convert to boolean
-    });
+function setupDarkModeToggle() {
+    const darkModeButton = document.getElementById('toggleMode');
+    console.log('Toggle button:', darkModeButton); // Debugging line
+
+    if (!darkModeButton) {
+        console.error('Toggle mode button not found!');
+        return; // Exit if the button is not found
+    }
+
+    darkModeButton.onclick = () => {
+        console.log('Toggle button clicked'); // Debugging line
+        document.body.classList.toggle('light-mode'); // Toggle light mode class
+        const isLightMode = document.body.classList.contains('light-mode');
+        document.body.style.backgroundColor = isLightMode ? '#ffffff' : '#1a1a1a'; // Change background color
+        document.querySelector('#moduleCloud').style.backgroundColor = isLightMode ? '#ffffff' : '#1a1a1a'; // Change module cloud background
+    };
 }
 
-function handleCredentialResponse(response) {
-    try {
-        // Decode the JWT token from Google
-        const decoded = jwt_decode(response.credential);
-        const email = decoded.email;
-        
-        console.log("Logged in as: " + email);
-        
-        // Store authentication data
-        localStorage.setItem('userToken', response.credential);
-        localStorage.setItem('userEmail', email);
-        
-        // Redirect to the dashboard page
-        window.location.href = 'https://avocadohead.github.io/The-AI-Index/dashboard';
-        
-    } catch (error) {
-        console.error("Error processing login:", error);
-        alert("Login failed. Please try again.");
+async function checkAuthenticationStatus() {
+    const { data: { session } } = await supabase.auth.getSession();
+    return !!session;
+}
+
+async function signUp() {
+    const email = document.getElementById('authEmail').value;
+    const password = document.getElementById('authPassword').value;
+
+    if (email && password) {
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) {
+            alert('Error signing up: ' + error.message);
+        } else {
+            alert('Registration successful! Please check your email to confirm your account.');
+        }
+    } else {
+        alert('Please enter both email and password.');
+    }
+}
+
+async function signIn() {
+    const email = document.getElementById('authEmail').value;
+    const password = document.getElementById('authPassword').value;
+
+    if (email && password) {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+            alert('Error logging in: ' + error.message);
+        } else {
+            document.getElementById('authModal').style.display = 'none';
+            loadModuleCloud();
+        }
+    } else {
+        alert('Please enter both email and password.');
     }
 }
 
