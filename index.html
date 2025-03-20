@@ -12,7 +12,7 @@
 
         gtag('config', 'G-36D3N7VSMG');
     </script>
-    <title>The AI Module Cloud</title>
+    <title>AI Module Cloud</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -54,6 +54,7 @@
 
     <div class="controls">
         <div class="file-controls">
+            <button id="loginButton" data-translate="login">Login</button>
             <button id="saveIndex" data-translate="saveIndex">Save<br>Index</button>
             <button id="loadIndex" data-translate="loadIndex">Load<br>Index</button>
             <div class="module-controls">
@@ -81,17 +82,20 @@
                     </div>
                 </div>
             </div>
-            <input type="file" id="fileInput" accept=".js,.txt" style="display: none;">
+            <div class="color-picker">
+                <input type="color" id="bgColor" value="#ffffff">
+            </div>
+            <div class="mode-toggle">
+                <button id="toggleMode" class="control-button toggle-mode">🌓</button>
+            </div>
         </div>
-        <div class="color-picker">
-            <input type="color" id="bgColor" value="#1a1a1a">
-        </div>
+        <input type="file" id="fileInput" accept=".js,.txt" style="display: none;">
     </div>
 
     <div id="tooltip" class="tooltip"></div>
     <canvas id="moduleCloud"></canvas>
     <script src="modules.js"></script>
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
     <div class="footer">
         <div class="social-icons">
             <!-- Profile with existing link -->
@@ -127,23 +131,9 @@
             <span class="close-modal">&times;</span>
             <h2>Welcome to AI Module Cloud</h2>
             <p>Please sign in to access the AI module collection</p>
-            <div class="auth-buttons">
-                <div id="g_id_onload"
-                     data-client_id="421296945393-4068e67sgd0aral28ic46vt57ej9gd90.apps.googleusercontent.com"
-                     data-callback="handleCredentialResponse">
-                </div>
-                <div class="g_id_signin"
-                     data-type="standard"
-                     data-size="large"
-                     data-theme="outline"
-                     data-text="sign_in_with"
-                     data-shape="rectangular"
-                     data-logo_alignment="left">
-                </div>
-            </div>
-            <div id="emailAuthForm" style="display: none;">
-                <input type="email" id="authEmail" placeholder="Your email">
-                <input type="password" id="authPassword" placeholder="Your password">
+            <div id="emailAuthForm">
+                <input type="email" id="authEmail" placeholder="Your email" required>
+                <input type="password" id="authPassword" placeholder="Your password" required>
                 <div class="auth-actions">
                     <button id="signInButton">Sign In</button>
                     <button id="signUpButton">Sign Up</button>
