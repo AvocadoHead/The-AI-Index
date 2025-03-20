@@ -1685,36 +1685,21 @@ async function checkAuthenticationStatus() {
     return !!session;
 }
 
-async function signUp() {
-    const email = document.getElementById('authEmail').value;
-    const password = document.getElementById('authPassword').value;
-
-    if (email && password) {
-        const { error } = await supabase.auth.signUp({ email, password });
-        if (error) {
-            alert('Error signing up: ' + error.message);
-        } else {
-            alert('Registration successful! Please check your email to confirm your account.');
-        }
+async function signUp(email, password) {
+    const { user, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+        console.error('Error signing up:', error.message);
     } else {
-        alert('Please enter both email and password.');
+        console.log('Sign up successful:', user);
     }
 }
 
-async function signIn() {
-    const email = document.getElementById('authEmail').value;
-    const password = document.getElementById('authPassword').value;
-
-    if (email && password) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-            alert('Error logging in: ' + error.message);
-        } else {
-            document.getElementById('authModal').style.display = 'none';
-            loadModuleCloud();
-        }
+async function signIn(email, password) {
+    const { user, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+        console.error('Error signing in:', error.message);
     } else {
-        alert('Please enter both email and password.');
+        console.log('Sign in successful:', user);
     }
 }
 
