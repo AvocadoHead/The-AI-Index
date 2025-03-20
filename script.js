@@ -1650,11 +1650,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.classList.add('light-mode');
     document.body.style.backgroundColor = '#ffffff';
 
+    // Remove the automatic display of the modal
     // Check if the user is authenticated
     checkAuthenticationStatus().then(isAuthenticated => {
         if (!isAuthenticated) {
-            // Show login modal if not authenticated
-            document.getElementById('authModal').style.display = 'block';
+            // Do not show the modal here
+            // document.getElementById('authModal').style.display = 'block'; // Remove this line
         } else {
             // Load the module cloud if authenticated
             loadModuleCloud();
@@ -1667,7 +1668,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Event listener for login button
     document.getElementById('loginButton').addEventListener('click', () => {
-        document.getElementById('authModal').style.display = 'block';
+        document.getElementById('authModal').style.display = 'block'; // Show the modal on button click
     });
 
     // Close modal functionality
@@ -1678,24 +1679,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup dark mode toggle
     setupDarkModeToggle();
 });
-
-function setupDarkModeToggle() {
-    const darkModeButton = document.getElementById('toggleMode');
-    console.log('Toggle button:', darkModeButton); // Debugging line
-
-    if (!darkModeButton) {
-        console.error('Toggle mode button not found!');
-        return; // Exit if the button is not found
-    }
-
-    darkModeButton.onclick = () => {
-        console.log('Toggle button clicked'); // Debugging line
-        document.body.classList.toggle('light-mode'); // Toggle light mode class
-        const isLightMode = document.body.classList.contains('light-mode');
-        document.body.style.backgroundColor = isLightMode ? '#ffffff' : '#1a1a1a'; // Change background color
-        document.querySelector('#moduleCloud').style.backgroundColor = isLightMode ? '#ffffff' : '#1a1a1a'; // Change module cloud background
-    };
-}
 
 async function checkAuthenticationStatus() {
     const { data: { session } } = await supabase.auth.getSession();
