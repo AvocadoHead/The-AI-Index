@@ -1,11 +1,18 @@
 // Database connection to Supabase
 const supabaseUrl = 'https://avdasdlhnfuwrzfpsyis.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2ZGFzZGxobmZ1d3J6ZnBzeWlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjM3MDM5OSwiZXhwIjoyMDU3OTQ2Mzk5fQ.YdL8OLjo0rQzdeL7GN9A9VPTgHbvV4FsaTwOlqY_PWI';
+// Use the anon key from the window object to avoid duplication
+const supabaseKey = window.supabaseKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2ZGFzZGxobmZ1d3J6ZnBzeWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzNzAzOTksImV4cCI6MjA1Nzk0NjM5OX0.VLFFdFEm57eEIj8D0KF10tk3aWpv4effMw0IDNGQA2I';
 
 // Initialize the Supabase client
 const initSupabase = ()  => {
     try {
-        return supabase.createClient(supabaseUrl, supabaseKey);
+        // Use the already initialized supabase client from the window object
+        if (window.supabase) {
+            return window.supabase;
+        } else {
+            console.warn('Supabase not found on window object');
+            return null;
+        }
     } catch (error) {
         console.error('Error initializing Supabase client:', error);
         return null;
@@ -41,7 +48,10 @@ const fetchModulesFromDatabase = async () => {
 // Function to determine if a module is premium
 const isPremiumModule = (moduleId) => {
     // Check if the module is in the premium tier list
-    return premiumTierModules.some(module => module.id === moduleId);
+    if (typeof window.premiumTierModules !== 'undefined') {
+        return window.premiumTierModules.some(module => module.id === moduleId);
+    }
+    return false;
 };
 
 // Function to load modules with fallback to local data
@@ -54,15 +64,38 @@ const loadModulesWithFallback = async () => {
         return databaseModules;
     } else {
         console.log('Using fallback modules from local file');
-        return modules; // Fallback to local modules.js
+        // Check if modules is defined before using it
+        if (typeof window.modules !== 'undefined') {
+            return window.modules;
+        } else {
+            console.error('Local modules not found');
+            return [];
+        }
     }
 };
 
 // Initialize modules when the page loads
 document.addEventListener('DOMContentLoaded', async () => {
-    const loadedModules = await loadModulesWithFallback();
-    if (loadedModules) {
-        // Use the loaded modules to populate the UI
-        console.log(`Loaded ${loadedModules.length} modules`);
-    }
-}); 
+    // Wait a bit to ensure other scripts have loaded
+    setTimeout(async () => {
+        try {
+            const loadedModules = await loadModulesWithFallback();
+            if (loadedModules && loadedModules.length > 0) {
+                // Use the loaded modules to populate the UI
+                console.log(`Loaded ${loadedModules.length} modules`);
+                // Make modules available to other scripts
+                window.databaseModules = loadedModules;
+            } else {
+                console.warn('No modules were loaded');
+            }
+        } catch (err) {
+            console.error('Error loading modules:', err);
+        }
+    }, 500);
+});
+
+// Expose module loading functionality to window
+window.moduleDatabase = {
+    fetchModules: loadModulesWithFallback,
+    isPremium: isPremiumModule
+}; 
