@@ -1,5 +1,4 @@
-// Import the necessary modules
-import { createClient } from '@supabase/supabase-js';
+// No import needed as we're using the global supabase object
 
 class AIModule {
     constructor(name, categories, url, scores = {}, isPremium = false) {
@@ -87,11 +86,13 @@ class ModuleCloud {
             
             // Load modules based on user tier
             if (isPremium) {
-                // Load premium modules from the premium_tier_modules.js file
-                const response = await fetch('premium_tier_modules.js');
-                if (response.ok) {
-                    const premiumModules = await response.json();
-                    this.modules = premiumModules.map(module => 
+                // Use both default and premium modules for premium users
+                if (window.defaultModules && Array.isArray(window.defaultModules) && 
+                    window.premiumModules && Array.isArray(window.premiumModules)) {
+                    
+                    // Load all modules for premium users
+                    const allModules = [...window.defaultModules, ...window.premiumModules];
+                    this.modules = allModules.map(module => 
                         new AIModule(
                             module.name, 
                             module.categories, 
@@ -100,9 +101,9 @@ class ModuleCloud {
                             module.is_premium || false
                         )
                     );
-                    console.log(`Loaded ${this.modules.length} premium modules`);
+                    console.log(`Loaded ${this.modules.length} modules for premium user`);
                 } else {
-                    console.error('Failed to load premium modules, falling back to default modules');
+                    console.error('Premium modules not found, falling back to default modules');
                     this.loadDefaultModules();
                 }
             } else {
@@ -120,13 +121,11 @@ class ModuleCloud {
     }
 
     loadDefaultModules() {
-        // Import default modules from modules.js
-        import('./modules.js').then(module => {
-            const defaultModulesData = module.default || window.defaultModules;
-            
+        // Use default modules directly from the global variable
+        if (window.defaultModules && Array.isArray(window.defaultModules)) {
             // For free tier, limit to approximately 100 modules
             const moduleLimit = 100;
-            const modulesToUse = defaultModulesData.slice(0, moduleLimit);
+            const modulesToUse = window.defaultModules.slice(0, moduleLimit);
             
             this.modules = modulesToUse.map(module => 
                 new AIModule(
@@ -141,9 +140,9 @@ class ModuleCloud {
             
             // Position modules in 3D space
             this.positionModules();
-        }).catch(error => {
-            console.error('Error importing default modules:', error);
-        });
+        } else {
+            console.error('Default modules not found');
+        }
     }
 
     async checkUserPremiumStatus() {
