@@ -38,17 +38,29 @@ function setLanguage(lang) {
   // Store the selected language in localStorage
   localStorage.setItem('selectedLanguage', lang);
   
-  // Update active state on language buttons
-  document.querySelectorAll('.language-btn').forEach(btn => {
-    btn.classList.remove('active');
-    if (btn.getAttribute('data-lang') === lang) {
-      btn.classList.add('active');
-    }
-  });
+  // Update language toggle button text
+  const languageToggle = document.getElementById('languageToggle');
+  if (languageToggle) {
+    if (lang === 'en') languageToggle.textContent = 'EN';
+    else if (lang === 'he') languageToggle.textContent = 'HE';
+    else if (lang === 'zh') languageToggle.textContent = '中文';
+  }
 }
 
 // Initialize language from localStorage or default to English
 function initializeLanguage() {
   const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
   setLanguage(savedLanguage);
+}
+
+// Function to cycle through languages
+function cycleLanguage() {
+  const currentLang = localStorage.getItem('selectedLanguage') || 'en';
+  let nextLang;
+  
+  if (currentLang === 'en') nextLang = 'he';
+  else if (currentLang === 'he') nextLang = 'zh';
+  else nextLang = 'en';
+  
+  setLanguage(nextLang);
 }

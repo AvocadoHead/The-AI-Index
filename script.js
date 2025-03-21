@@ -750,10 +750,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Language selector buttons
-    document.querySelectorAll('.language-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            setLanguage(btn.getAttribute('data-lang'));
-        });
+    document.getElementById('languageToggle').addEventListener('click', () => {
+        cycleLanguage();
     });
 
     // Initialize language
@@ -761,6 +759,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Setup dark mode toggle
     setupDarkModeToggle();
+    
+    // Add admin tools if user has admin rights
+    addAdminTools();
 });
 
 async function checkAuthenticationStatus() {
@@ -840,20 +841,9 @@ async function checkUserTierAndLoadModules() {
         
         console.log('Loading module cloud for authenticated user');
         
-        // Get user data to check is_premium column
-        const { data, error } = await window.supabase
-            .from('users')
-            .select('is_premium')
-            .eq('id', user.id)
-            .single();
-            
-        if (error) {
-            console.error('Error checking premium status:', error);
-            loadModuleCloud(false); // Load free tier on error
-            return;
-        }
-        
-        const isPremium = data?.is_premium || false;
+        // Check if user is premium directly from auth metadata
+        // This avoids the need for a separate users table
+        const isPremium = user.user_metadata?.is_premium === true;
         console.log(`User is ${isPremium ? 'premium' : 'free'} tier`);
         
         // Load module cloud with appropriate tier

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="auth-styles.css">
     <link rel="stylesheet" href="additional-styles.css">
+    <link rel="stylesheet" href="admin-styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
@@ -81,9 +82,7 @@
                 <button id="toggleMode" class="control-button toggle-mode">🌓</button>
             </div>
             <div class="language-selector">
-                <button data-lang="en" class="language-btn active">EN</button>
-                <button data-lang="he" class="language-btn">HE</button>
-                <button data-lang="zh" class="language-btn">中文</button>
+                <button id="languageToggle" class="language-btn">EN</button>
             </div>
         </div>
         <input type="file" id="fileInput" accept=".js,.txt" style="display: none;">
@@ -94,6 +93,7 @@
     <script src="script.js"></script>
     <script src="language.js"></script>
     <script src="user-functions.js"></script>
+    <script src="admin-tools.js"></script>
     <div class="footer">
         <div class="social-icons">
             <!-- Profile with existing link -->
