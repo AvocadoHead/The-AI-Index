@@ -50,7 +50,16 @@ function setLanguage(lang) {
 // Initialize language from localStorage or default to English
 function initializeLanguage() {
   const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+  console.log(`Initializing language to ${savedLanguage}`);
   setLanguage(savedLanguage);
+  
+  // Force update of all translatable elements on initialization
+  document.querySelectorAll('[data-translate]').forEach(element => {
+    const key = element.getAttribute('data-translate');
+    if (translations[savedLanguage] && translations[savedLanguage][key]) {
+      element.innerHTML = translations[savedLanguage][key];
+    }
+  });
 }
 
 // Function to cycle through languages
@@ -62,5 +71,14 @@ function cycleLanguage() {
   else if (currentLang === 'he') nextLang = 'zh';
   else nextLang = 'en';
   
+  console.log(`Cycling language from ${currentLang} to ${nextLang}`);
   setLanguage(nextLang);
+  
+  // Force update of all translatable elements
+  document.querySelectorAll('[data-translate]').forEach(element => {
+    const key = element.getAttribute('data-translate');
+    if (translations[nextLang] && translations[nextLang][key]) {
+      element.innerHTML = translations[nextLang][key];
+    }
+  });
 }

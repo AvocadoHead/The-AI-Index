@@ -155,19 +155,12 @@ class ModuleCloud {
                 return false;
             }
             
-            // Get user data to check is_premium column
-            const { data, error } = await supabase
-                .from('users')
-                .select('is_premium')
-                .eq('id', user.id)
-                .single();
-                
-            if (error) {
-                console.error('Error checking premium status:', error);
-                return false;
-            }
+            // Check if user is premium directly from auth metadata
+            // This avoids the need for a separate users table
+            const isPremium = user.user_metadata?.is_premium === true;
+            console.log(`User premium status from metadata: ${isPremium}`);
             
-            return data?.is_premium || false; // Return premium status from user data
+            return isPremium || false;
         } catch (error) {
             console.error('Error checking premium status:', error);
             return false;
@@ -221,6 +214,7 @@ class ModuleCloud {
         document.querySelectorAll('.sidebar button').forEach(button => {
             button.addEventListener('click', () => {
                 const category = button.getAttribute('data-category');
+                console.log('Category selected:', category);
                 
                 // Toggle active class
                 document.querySelectorAll('.sidebar button').forEach(btn => {
@@ -238,9 +232,20 @@ class ModuleCloud {
         });
 
         // Sidebar toggle
-        document.querySelector('.sidebar-toggle').addEventListener('click', () => {
-            document.querySelector('.sidebar-container').classList.toggle('collapsed');
-        });
+        const sidebarToggle = document.querySelector('.sidebar-toggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                const sidebarContainer = document.querySelector('.sidebar-container');
+                if (sidebarContainer) {
+                    sidebarContainer.classList.toggle('collapsed');
+                    console.log('Sidebar toggled');
+                } else {
+                    console.error('Sidebar container not found');
+                }
+            });
+        } else {
+            console.error('Sidebar toggle button not found');
+        }
 
         // Font size controls
         document.getElementById('increaseFontSize').addEventListener('click', () => {
@@ -268,17 +273,32 @@ class ModuleCloud {
             document.getElementById('editModule').classList.remove('active');
         });
 
-        document.getElementById('editModule').addEventListener('click', () => {
-            this.isEditMode = !this.isEditMode;
-            this.isDeleteMode = false;
-            document.getElementById('editModule').classList.toggle('active');
-            document.getElementById('deleteModule').classList.remove('active');
-        });
+        const editModuleBtn = document.getElementById('editModule');
+        if (editModuleBtn) {
+            editModuleBtn.addEventListener('click', () => {
+                this.isEditMode = !this.isEditMode;
+                this.isDeleteMode = false;
+                editModuleBtn.classList.toggle('active');
+                const deleteModuleBtn = document.getElementById('deleteModule');
+                if (deleteModuleBtn) {
+                    deleteModuleBtn.classList.remove('active');
+                }
+                console.log('Edit mode toggled:', this.isEditMode);
+            });
+        } else {
+            console.error('Edit module button not found');
+        }
 
-        document.getElementById('editModuleForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.updateModule();
-        });
+        const editModuleFormEl = document.getElementById('editModuleForm');
+        if (editModuleFormEl) {
+            editModuleFormEl.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.updateModule();
+                console.log('Edit module form submitted');
+            });
+        } else {
+            console.error('Edit module form not found');
+        }
 
         // Background color picker
         document.getElementById('bgColor').addEventListener('input', (e) => {
@@ -296,9 +316,20 @@ class ModuleCloud {
             this.saveModulesToFile();
         });
 
-        document.getElementById('loadIndex').addEventListener('click', () => {
-            document.getElementById('fileInput').click();
-        });
+        const loadIndexBtn = document.getElementById('loadIndex');
+        if (loadIndexBtn) {
+            loadIndexBtn.addEventListener('click', () => {
+                const fileInput = document.getElementById('fileInput');
+                if (fileInput) {
+                    fileInput.click();
+                    console.log('File input clicked');
+                } else {
+                    console.error('File input element not found');
+                }
+            });
+        } else {
+            console.error('Load index button not found');
+        }
 
         document.getElementById('fileInput').addEventListener('change', (e) => {
             this.loadModulesFromFile(e.target.files[0]);
@@ -750,9 +781,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Language selector buttons
-    document.getElementById('languageToggle').addEventListener('click', () => {
-        cycleLanguage();
-    });
+    const languageToggleBtn = document.getElementById('languageToggle');
+    if (languageToggleBtn) {
+        languageToggleBtn.addEventListener('click', () => {
+            cycleLanguage();
+            console.log('Language toggled');
+        });
+    } else {
+        console.error('Language toggle button not found');
+    }
 
     // Initialize language
     initializeLanguage();
