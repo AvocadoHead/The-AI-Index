@@ -1,0 +1,113 @@
+.language-selector {
+    display: flex;
+    gap: 5px;
+    margin-left: 10px;
+}
+
+.language-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.light-mode .language-btn {
+    background: rgba(0, 0, 0, 0.1);
+    color: black;
+}
+
+.language-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.light-mode .language-btn:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.language-btn.active {
+    background: rgba(77, 171, 247, 0.5);
+    color: white;
+}
+
+.light-mode .language-btn.active {
+    background: rgba(0, 120, 215, 0.5);
+    color: white;
+}
+
+/* Premium user button styling */
+.premium-user {
+    background: linear-gradient(135deg, #ffd700, #ffb700) !important;
+    color: #000 !important;
+    font-weight: bold !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+}
+
+/* Premium access button for non-premium users */
+#upgradeToPremium {
+    background-color: #ffc107;
+    color: #000;
+    font-weight: bold;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+#upgradeToPremium:hover {
+    background-color: #ffb300;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+#upgradeToPremium i {
+    font-size: 14px;
+}
+
+/* Welcome message for logged in users */
+.welcome-message {
+    position: fixed;
+    top: 60px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    z-index: 900;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    max-width: 300px;
+}
+
+.light-mode .welcome-message {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #333;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.welcome-message p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.welcome-message .user-email {
+    font-weight: bold;
+    color: #4dabf7;
+}
+
+.light-mode .welcome-message .user-email {
+    color: #0078d7;
+}

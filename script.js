@@ -738,10 +738,27 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Close modal functionality
-    document.querySelector('.close-modal').addEventListener('click', () => {
-        document.getElementById('authModal').style.display = 'none';
+    document.querySelectorAll('.close-modal').forEach(closeBtn => {
+        closeBtn.addEventListener('click', () => {
+            closeBtn.closest('.modal').style.display = 'none';
+        });
     });
 
+    // Premium request button
+    document.getElementById('requestPremium').addEventListener('click', () => {
+        window.location.href = 'mailto:Eyalizenman@gmail.com?subject=Premium%20Access%20Request&body=I%20would%20like%20to%20upgrade%20to%20premium%20access%20for%20$5%20lifetime%20fee.';
+    });
+
+    // Language selector buttons
+    document.querySelectorAll('.language-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            setLanguage(btn.getAttribute('data-lang'));
+        });
+    });
+
+    // Initialize language
+    initializeLanguage();
+    
     // Setup dark mode toggle
     setupDarkModeToggle();
 });
@@ -813,7 +830,7 @@ async function signIn() {
 async function checkUserTierAndLoadModules() {
     try {
         // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await window.supabase.auth.getUser();
         
         if (!user) {
             console.log('No authenticated user found');
@@ -821,8 +838,10 @@ async function checkUserTierAndLoadModules() {
             return;
         }
         
+        console.log('Loading module cloud for authenticated user');
+        
         // Get user data to check is_premium column
-        const { data, error } = await supabase
+        const { data, error } = await window.supabase
             .from('users')
             .select('is_premium')
             .eq('id', user.id)
@@ -840,16 +859,22 @@ async function checkUserTierAndLoadModules() {
         // Load module cloud with appropriate tier
         loadModuleCloud(isPremium);
         
+        // Show welcome message
+        showWelcomeMessage(user.email, isPremium);
+        
         // Update UI to reflect premium status
         if (isPremium) {
             // Add premium indicator to UI
             const loginButton = document.getElementById('loginButton');
-            loginButton.textContent = '⭐ Premium';
+            loginButton.innerHTML = '⭐ Premium';
             loginButton.classList.add('premium-user');
+        } else {
+            // Add upgrade button for non-premium users
+            addUpgradeButton();
         }
     } catch (error) {
-        console.error('Error checking user tier:', error);
-        loadModuleCloud(false); // Load free tier on error
+        console.error('Error in checkUserTierAndLoadModules:', error);
+        loadModuleCloud(false); // Default to free tier on error
     }
 }
 
