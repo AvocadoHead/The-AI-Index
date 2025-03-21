@@ -710,10 +710,7 @@ class ModuleCloud {
     }
 }
 
-// Initialize Supabase client
-const supabaseUrl = 'https://avdasdlhnfuwrzfpsyis.supabase.co'; // Supabase URL
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2ZGFzZGxobmZ1d3J6ZnBzeWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzNzAzOTksImV4cCI6MjA1Nzk0NjM5OX0.VLFFdFEm57eEIj8D0KF10tk3aWpv4effMw0IDNGQA2I'; // Supabase anon key
-const supabase = createClient(supabaseUrl, supabaseKey);
+// No need to initialize Supabase client here as it's already done in index.html
 
 document.addEventListener('DOMContentLoaded', function() {
     // Set default to light mode
