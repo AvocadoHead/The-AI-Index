@@ -84,7 +84,7 @@
 
     <div id="tooltip" class="tooltip"></div>
     <canvas id="moduleCloud"></canvas>
-    <script type="module" src="script.js"></script>
+    <script src="script.js"></script>
     <div class="footer">
         <div class="social-icons">
             <!-- Profile with existing link -->
@@ -143,45 +143,127 @@
     </div>
 
     <!-- Include Supabase from CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
-        // Initialize Supabase client
-        const { createClient } = supabase;
-        const supabaseUrl = 'https://your-supabase-url.supabase.co'; // Replace with your Supabase URL
-        const supabaseKey = 'your-anon-key'; // Replace with your Supabase anon key
-        const supabase = createClient(supabaseUrl, supabaseKey);
+        // Initialize Supabase client correctly
+        const supabaseUrl = 'https://your-supabase-url.supabase.co'; // Replace with your actual Supabase URL
+        const supabaseKey = 'your-anon-key'; // Replace with your actual Supabase anon key
+        const supabase = supabaseJs.createClient(supabaseUrl, supabaseKey);
 
         // Function to handle sign up
-        async function signUp(email, password) {
-            const { user, error } = await supabase.auth.signUp({ email, password });
-            if (error) {
-                console.error('Error signing up:', error.message);
-            } else {
-                console.log('Sign up successful:', user);
+        async function signUp() {
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            
+            if (!email || !password) {
+                alert('Please enter both email and password');
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase.auth.signUp({ 
+                    email: email, 
+                    password: password 
+                });
+                
+                if (error) {
+                    alert('Error signing up: ' + error.message);
+                    console.error('Error signing up:', error.message);
+                } else {
+                    alert('Sign up successful! Please check your email to confirm your account.');
+                    console.log('Sign up successful:', data);
+                }
+            } catch (err) {
+                console.error('Exception during sign up:', err);
+                alert('An error occurred during sign up. Please try again.');
             }
         }
 
         // Function to handle sign in
-        async function signIn(email, password) {
-            const { user, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) {
-                console.error('Error signing in:', error.message);
-            } else {
-                console.log('Sign in successful:', user);
+        async function signIn() {
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            
+            if (!email || !password) {
+                alert('Please enter both email and password');
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({ 
+                    email: email, 
+                    password: password 
+                });
+                
+                if (error) {
+                    alert('Error logging in: ' + error.message);
+                    console.error('Error logging in:', error.message);
+                } else {
+                    console.log('Sign in successful:', data);
+                    // Hide the auth modal
+                    document.getElementById('authModal').style.display = 'none';
+                    // Load the module cloud
+                    loadModuleCloud();
+                }
+            } catch (err) {
+                console.error('Exception during sign in:', err);
+                alert('An error occurred during sign in. Please try again.');
             }
         }
 
-        // Event listeners for sign in and sign up buttons
-        document.getElementById('signInButton').addEventListener('click', () => {
-            const email = document.getElementById('authEmail').value;
-            const password = document.getElementById('authPassword').value;
-            signIn(email, password);
-        });
+        // Function to check auth status and load module cloud if authenticated
+        async function checkAuthAndLoadModules() {
+            try {
+                const { data, error } = await supabase.auth.getSession();
+                if (error) {
+                    console.error('Error checking session:', error.message);
+                    return;
+                }
+                
+                if (data.session) {
+                    // User is authenticated, load the module cloud
+                    loadModuleCloud();
+                }
+            } catch (err) {
+                console.error('Exception checking auth status:', err);
+            }
+        }
 
-        document.getElementById('signUpButton').addEventListener('click', () => {
-            const email = document.getElementById('authEmail').value;
-            const password = document.getElementById('authPassword').value;
-            signUp(email, password);
+        // Function to load the module cloud
+        function loadModuleCloud() {
+            console.log('Loading module cloud for authenticated user');
+            // Your code to initialize and display the module cloud
+        }
+
+        // Event listener for DOM content loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default to light mode
+            document.body.classList.add('light-mode');
+            document.body.style.backgroundColor = '#ffffff';
+
+            // Check if user is already authenticated
+            checkAuthAndLoadModules();
+
+            // Event listener for login button
+            document.getElementById('loginButton').addEventListener('click', function() {
+                document.getElementById('authModal').style.display = 'block';
+            });
+
+            // Event listeners for sign in and sign up buttons
+            document.getElementById('signInButton').addEventListener('click', signIn);
+            document.getElementById('signUpButton').addEventListener('click', signUp);
+
+            // Close modal when clicking the × button
+            document.querySelector('.close-modal').addEventListener('click', function() {
+                document.getElementById('authModal').style.display = 'none';
+            });
+
+            // Close modal when clicking outside of it
+            window.addEventListener('click', function(event) {
+                if (event.target == document.getElementById('authModal')) {
+                    document.getElementById('authModal').style.display = 'none';
+                }
+            });
         });
     </script>
 </body>
