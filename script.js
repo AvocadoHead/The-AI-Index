@@ -717,13 +717,17 @@ class ModuleCloud {
             try {
                 const modulesData = JSON.parse(e.target.result);
                 
+                if (!Array.isArray(modulesData)) {
+                    throw new Error('Invalid JSON format: expected an array of modules');
+                }
+                
                 // Create modules from data
                 this.modules = modulesData.map(data => 
                     new AIModule(
-                        data.name, 
-                        data.categories, 
-                        data.url, 
-                        data.scores,
+                        data.name || 'Unknown Module', 
+                        data.categories || [], 
+                        data.url || '#', 
+                        data.scores || {},
                         data.is_premium || false
                     )
                 );
@@ -734,8 +738,12 @@ class ModuleCloud {
                 console.log(`Loaded ${this.modules.length} modules from file`);
             } catch (error) {
                 console.error('Error parsing modules file:', error);
-                alert('Error loading modules file. Please check the file format.');
+                alert('Error loading modules file: ' + error.message);
             }
+        };
+        reader.onerror = (error) => {
+            console.error('Error reading file:', error);
+            alert('Error reading file');
         };
         reader.readAsText(file);
     }
@@ -747,6 +755,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set default to light mode
     document.body.classList.add('light-mode');
     document.body.style.backgroundColor = '#ffffff';
+
+    // Initialize sidebar as collapsed by default
+    const sidebarContainer = document.querySelector('.sidebar-container');
+    if (sidebarContainer) {
+        sidebarContainer.classList.add('collapsed');
+    }
 
     // Check if the user is authenticated
     checkAuthenticationStatus().then(isAuthenticated => {
