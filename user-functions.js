@@ -55,7 +55,7 @@ function addUpgradeButton() {
     // Create upgrade button
     const upgradeButton = document.createElement('button');
     upgradeButton.id = 'upgradeToPremium';
-    upgradeButton.innerHTML = '<i class="fas fa-crown"></i> Upgrade to Premium';
+    upgradeButton.innerHTML = '<i class="fas fa-crown"></i>';
     
     // Add event listener to show premium modal
     upgradeButton.addEventListener('click', () => {

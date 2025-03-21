@@ -399,32 +399,58 @@ body.light-mode .tooltip {
 
 .social-icons {
     display: flex;
-    gap: 15px;
+    gap: 20px;
     align-items: center;
 }
 
-.social-icons a,
-.social-icons a:visited {
-    color: rgba(255, 255, 255, 0.8);
+.social-icons a {
+    color: white;
+    font-size: 24px;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-decoration: none;
-    transition: all 0.3s;
-    font-size: 20px;
+}
+
+.light-mode .social-icons a {
+    color: #333;
+}
+
+.social-icons a:hover {
+    transform: translateY(-3px);
+    color: #4dabf7;
+}
+
+.social-icons a::after {
+    content: attr(title);
+    font-size: 12px;
+    margin-top: 5px;
+    text-align: center;
+    opacity: 0.8;
 }
 
 .contact-info {
     display: flex;
-    gap: 20px;
-    font-size: 12px;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
 }
 
 .contact-info a {
-    color: rgba(255, 255, 255, 0.8);
+    color: white;
     text-decoration: none;
-    transition: color 0.3s;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.light-mode .contact-info a {
+    color: #333;
 }
 
 .contact-info a:hover {
-    color: white;
+    color: #4dabf7;
 }
 
 /* Light mode adjustments */
@@ -865,15 +891,15 @@ body.light-mode .social-icons a:hover {
 /* Add a container for both sidebar and toggle */
 .sidebar-container {
     position: fixed;
-    left: -300px;
     top: 0;
+    left: 0;
     height: 100%;
-    z-index: 1101;
+    z-index: 1000;
     transition: transform 0.3s ease;
 }
 
-.sidebar-container.visible {
-    transform: translateX(300px);
+.sidebar-container.collapsed {
+    transform: translateX(-300px);
 }
 
 .sidebar-toggle {
