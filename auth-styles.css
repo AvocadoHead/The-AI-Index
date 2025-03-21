@@ -1,0 +1,203 @@
+/* Auth modal styling improvements */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: #2a2a2a;
+    color: #ffffff;
+    margin: 10% auto;
+    padding: 30px;
+    border: 1px solid #444;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.light-mode .modal-content {
+    background-color: #f8f8f8;
+    color: #333333;
+    border: 1px solid #ddd;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 10px;
+    color: #4dabf7;
+}
+
+.light-mode .modal-content h2 {
+    color: #0078d7;
+}
+
+.modal-content p {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s;
+    margin-top: -10px;
+    margin-right: -10px;
+}
+
+.close-modal:hover {
+    color: #4dabf7;
+}
+
+.light-mode .close-modal:hover {
+    color: #0078d7;
+}
+
+#emailAuthForm {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+#emailAuthForm input {
+    padding: 12px 15px;
+    border: 1px solid #444;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 16px;
+    transition: all 0.3s;
+}
+
+.light-mode #emailAuthForm input {
+    border: 1px solid #ddd;
+    background: rgba(0, 0, 0, 0.02);
+    color: #333;
+}
+
+#emailAuthForm input:focus {
+    outline: none;
+    border-color: #4dabf7;
+    box-shadow: 0 0 0 2px rgba(77, 171, 247, 0.2);
+}
+
+.light-mode #emailAuthForm input:focus {
+    border-color: #0078d7;
+    box-shadow: 0 0 0 2px rgba(0, 120, 215, 0.2);
+}
+
+.auth-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.auth-actions button,
+#requestPremium {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+#signInButton {
+    background-color: #4dabf7;
+    color: white;
+}
+
+#signUpButton {
+    background-color: transparent;
+    color: #4dabf7;
+    border: 1px solid #4dabf7;
+}
+
+.light-mode #signInButton {
+    background-color: #0078d7;
+}
+
+.light-mode #signUpButton {
+    color: #0078d7;
+    border: 1px solid #0078d7;
+}
+
+.auth-actions button:hover,
+#requestPremium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.light-mode .auth-actions button:hover,
+.light-mode #requestPremium:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#signInButton:hover {
+    background-color: #3a99e6;
+}
+
+#signUpButton:hover {
+    background-color: rgba(77, 171, 247, 0.1);
+}
+
+.light-mode #signInButton:hover {
+    background-color: #0067be;
+}
+
+.light-mode #signUpButton:hover {
+    background-color: rgba(0, 120, 215, 0.1);
+}
+
+#requestPremium {
+    background-color: #ffc107;
+    color: #000;
+    margin-top: 15px;
+    width: 100%;
+}
+
+#requestPremium:hover {
+    background-color: #ffb300;
+}
+
+/* Premium modal styling */
+#premiumModal .modal-content h2 {
+    color: #ffc107;
+}
+
+.light-mode #premiumModal .modal-content h2 {
+    color: #ff9800;
+}
+
+#premiumModal .modal-content a {
+    color: #4dabf7;
+    text-decoration: none;
+}
+
+.light-mode #premiumModal .modal-content a {
+    color: #0078d7;
+}
+
+#premiumModal .modal-content a:hover {
+    text-decoration: underline;
+}

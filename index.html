@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI Module Cloud</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
@@ -146,9 +147,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // Initialize Supabase client correctly
-        const supabaseUrl = 'https://avdasdlhnfuwrzfpsyis.supabase.co'; // Supabase URL
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2ZGFzZGxobmZ1d3J6ZnBzeWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzNzAzOTksImV4cCI6MjA1Nzk0NjM5OX0.VLFFdFEm57eEIj8D0KF10tk3aWpv4effMw0IDNGQA2I'; // Supabase anon key
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        window.supabaseUrl = 'https://avdasdlhnfuwrzfpsyis.supabase.co'; // Supabase URL
+        window.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2ZGFzZGxobmZ1d3J6ZnBzeWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzNzAzOTksImV4cCI6MjA1Nzk0NjM5OX0.VLFFdFEm57eEIj8D0KF10tk3aWpv4effMw0IDNGQA2I'; // Supabase anon key
+        window.supabase = window.supabase.createClient(window.supabaseUrl, window.supabaseKey);
 
         // Function to handle sign up
         async function signUp() {
@@ -161,7 +162,7 @@
             }
             
             try {
-                const { data, error } = await supabase.auth.signUp({ 
+                const { data, error } = await window.supabase.auth.signUp({ 
                     email: email, 
                     password: password 
                 });
@@ -190,7 +191,7 @@
             }
             
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({ 
+                const { data, error } = await window.supabase.auth.signInWithPassword({ 
                     email: email, 
                     password: password 
                 });

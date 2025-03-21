@@ -747,7 +747,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function checkAuthenticationStatus() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await window.supabase.auth.getSession();
     return !!session;
 }
 
@@ -761,7 +761,7 @@ async function signUp() {
     }
     
     try {
-        const { data, error } = await supabase.auth.signUp({ 
+        const { data, error } = await window.supabase.auth.signUp({ 
             email: email, 
             password: password 
         });
@@ -789,7 +789,7 @@ async function signIn() {
     }
     
     try {
-        const { data, error } = await supabase.auth.signInWithPassword({ 
+        const { data, error } = await window.supabase.auth.signInWithPassword({ 
             email: email, 
             password: password 
         });
