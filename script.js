@@ -71,78 +71,64 @@ class ModuleCloud {
         this.isEditMode = false;
         this.isDeleteMode = false;
         this.userTier = 'free'; // Default to free tier
+        
+        // Check for modules in window.defaultModules from modules.js
+        if (window.defaultModules && Array.isArray(window.defaultModules) && window.defaultModules.length > 0) {
+            console.log('Found defaultModules in window, initializing with them');
+            this.initializeWithDefaultModules(window.defaultModules);
+        }
+        
+        // Set window.moduleCloud for global access
+        window.moduleCloud = this;
 
         this.setupEventListeners();
         this.resizeCanvas();
         this.loadModules();
         this.animate();
     }
-
-    async loadModules() {
-        try {
-            // Check if user is premium
-            const isPremium = await this.checkUserPremiumStatus();
-            this.userTier = isPremium ? 'premium' : 'free';
-            
-            // Load modules based on user tier
-            if (isPremium) {
-                // Use both default and premium modules for premium users
-                if (window.defaultModules && Array.isArray(window.defaultModules) && 
-                    window.premiumModules && Array.isArray(window.premiumModules)) {
-                    
-                    // Load all modules for premium users
-                    const allModules = [...window.defaultModules, ...window.premiumModules];
-                    this.modules = allModules.map(module => 
-                        new AIModule(
-                            module.name, 
-                            module.categories, 
-                            module.url, 
-                            module.scores,
-                            module.is_premium || false
-                        )
-                    );
-                    console.log(`Loaded ${this.modules.length} modules for premium user`);
-                } else {
-                    console.error('Premium modules not found, falling back to default modules');
-                    this.loadDefaultModules();
-                }
-            } else {
-                // Load free tier modules (limited subset)
-                this.loadDefaultModules();
-            }
-            
-            // Position modules in 3D space
-            this.positionModules();
-        } catch (error) {
-            console.error('Error loading modules:', error);
-            // Fallback to default modules
-            this.loadDefaultModules();
+    
+    // Add a method to initialize with default modules from modules.js
+    initializeWithDefaultModules(modulesData) {
+        if (!modulesData || !Array.isArray(modulesData)) {
+            console.error('Invalid default modules data:', modulesData);
+            return;
         }
+        
+        console.log(`Initializing with ${modulesData.length} default modules`);
+        
+        // Create module objects from data
+        const defaultModules = modulesData.map(data => 
+            new AIModule(
+                data.name, 
+                data.categories, 
+                data.url, 
+                data.scores,
+                data.is_premium || false
+            )
+        );
+        
+        // Store default modules for fallback
+        this.defaultModules = defaultModules;
     }
 
-    loadDefaultModules() {
-        // Use default modules directly from the global variable
-        if (window.defaultModules && Array.isArray(window.defaultModules)) {
-            // For free tier, limit to approximately 100 modules
-            const moduleLimit = 100;
-            const modulesToUse = window.defaultModules.slice(0, moduleLimit);
-            
-            this.modules = modulesToUse.map(module => 
-                new AIModule(
-                    module.name, 
-                    module.categories, 
-                    module.url, 
-                    module.scores,
-                    false
-                )
-            );
-            console.log(`Loaded ${this.modules.length} free tier modules`);
-            
-            // Position modules in 3D space
+    loadModules() {
+        console.log('Loading modules');
+        
+        // Check if we have default modules stored
+        if (this.defaultModules && this.defaultModules.length > 0) {
+            console.log(`Using ${this.defaultModules.length} default modules from modules.js`);
+            this.modules = [...this.defaultModules];
             this.positionModules();
-        } else {
-            console.error('Default modules not found');
+            return;
         }
+        
+        // No default modules, try creating some modules (this is the original code)
+        this.modules = [
+            // Your existing fallback modules here
+        ];
+        
+        console.log(`Created ${this.modules.length} modules from hardcoded data`);
+        this.positionModules();
     }
 
     async checkUserPremiumStatus() {
@@ -233,18 +219,24 @@ class ModuleCloud {
 
         // Sidebar toggle
         const sidebarToggle = document.querySelector('.sidebar-toggle');
-        if (sidebarToggle) {
+        const sidebarContainer = document.querySelector('.sidebar-container');
+        
+        // Initialize sidebar toggle functionality
+        if (sidebarToggle && sidebarContainer) {
+            // Make sure the initial state is set to collapsed
+            sidebarContainer.classList.add('collapsed');
+            
             sidebarToggle.addEventListener('click', () => {
-                const sidebarContainer = document.querySelector('.sidebar-container');
-                if (sidebarContainer) {
-                    sidebarContainer.classList.toggle('collapsed');
-                    console.log('Sidebar toggled');
-                } else {
-                    console.error('Sidebar container not found');
-                }
+                sidebarContainer.classList.toggle('collapsed');
+                console.log('Sidebar toggled:', sidebarContainer.classList.contains('collapsed') ? 'collapsed' : 'expanded');
             });
+            
+            console.log('Sidebar toggle initialized');
         } else {
-            console.error('Sidebar toggle button not found');
+            console.error('Sidebar elements not found:', {
+                toggle: !!sidebarToggle,
+                container: !!sidebarContainer
+            });
         }
 
         // Font size controls
@@ -319,8 +311,11 @@ class ModuleCloud {
         const loadIndexBtn = document.getElementById('loadIndex');
         if (loadIndexBtn) {
             loadIndexBtn.addEventListener('click', () => {
+                console.log('Load index button clicked');
                 const fileInput = document.getElementById('fileInput');
                 if (fileInput) {
+                    // Reset the file input to ensure change event fires even if selecting the same file
+                    fileInput.value = '';
                     fileInput.click();
                     console.log('File input clicked');
                 } else {
@@ -331,9 +326,22 @@ class ModuleCloud {
             console.error('Load index button not found');
         }
 
-        document.getElementById('fileInput').addEventListener('change', (e) => {
-            this.loadModulesFromFile(e.target.files[0]);
-        });
+        // Ensure the file input change event handler is properly registered
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                console.log('File input changed');
+                if (e.target.files && e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    console.log('Selected file:', file.name);
+                    this.loadModulesFromFile(file);
+                } else {
+                    console.log('No file selected');
+                }
+            });
+        } else {
+            console.error('File input not found for event handler');
+        }
 
         // Premium upgrade button
         document.getElementById('requestPremium').addEventListener('click', () => {

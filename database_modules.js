@@ -70,6 +70,8 @@ const loadModulesWithFallback = async () => {
             return window.defaultModules;
         } else {
             console.error('Local defaultModules not found in modules.js');
+            // Set a global variable to indicate we need to retry
+            window.needModulesRetry = true;
             return [];
         }
     }
@@ -80,8 +82,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Wait a bit to ensure other scripts have loaded
     setTimeout(async () => {
         try {
-            // Check that the modules.js file is correctly loaded
-            if (typeof window.defaultModules === 'undefined') {
+            // Force the moduleCloud to initialize with default modules
+            if (typeof window.defaultModules !== 'undefined') {
+                console.log('Default modules found:', window.defaultModules.length);
+                if (window.moduleCloud && typeof window.moduleCloud.initializeModules === 'function') {
+                    window.moduleCloud.initializeModules(window.defaultModules);
+                    console.log('Initialized module cloud with default modules');
+                }
+            } else {
                 console.warn('Default modules not found in window object. Make sure modules.js is loaded properly.');
             }
             
