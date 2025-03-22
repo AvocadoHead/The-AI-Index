@@ -48,8 +48,8 @@ const fetchModulesFromDatabase = async () => {
 // Function to determine if a module is premium
 const isPremiumModule = (moduleId) => {
     // Check if the module is in the premium tier list
-    if (typeof window.premiumTierModules !== 'undefined') {
-        return window.premiumTierModules.some(module => module.id === moduleId);
+    if (typeof window.premiumModules !== 'undefined') {
+        return window.premiumModules.some(module => module.id === moduleId);
     }
     return false;
 };
@@ -64,11 +64,12 @@ const loadModulesWithFallback = async () => {
         return databaseModules;
     } else {
         console.log('Using fallback modules from local file');
-        // Check if modules is defined before using it
-        if (typeof window.modules !== 'undefined') {
-            return window.modules;
+        // Check if defaultModules is defined in the window object
+        if (typeof window.defaultModules !== 'undefined') {
+            console.log('Using defaultModules from modules.js as fallback');
+            return window.defaultModules;
         } else {
-            console.error('Local modules not found');
+            console.error('Local defaultModules not found in modules.js');
             return [];
         }
     }
@@ -79,6 +80,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Wait a bit to ensure other scripts have loaded
     setTimeout(async () => {
         try {
+            // Check that the modules.js file is correctly loaded
+            if (typeof window.defaultModules === 'undefined') {
+                console.warn('Default modules not found in window object. Make sure modules.js is loaded properly.');
+            }
+            
             const loadedModules = await loadModulesWithFallback();
             if (loadedModules && loadedModules.length > 0) {
                 // Use the loaded modules to populate the UI
@@ -91,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (err) {
             console.error('Error loading modules:', err);
         }
-    }, 500);
+    }, 1000); // Increase timeout to ensure scripts are loaded
 });
 
 // Expose module loading functionality to window
