@@ -221,11 +221,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 
                 // Make sure modules are loaded and visible
-                if (window.moduleCloud.modules.length === 0) {
-                    console.log('Loading modules into ModuleCloud');
-                    window.moduleCloud.loadModules();
-                    window.moduleCloud.positionModules();
-                    console.log(`Loaded ${window.moduleCloud.modules.length} modules`);
+                if (window.moduleCloud && window.moduleCloud.modules) {
+                    if (window.moduleCloud.modules.length === 0) {
+                        console.log('Loading modules into ModuleCloud');
+                        window.moduleCloud.loadModules();
+                        if (typeof window.moduleCloud.positionModules === 'function') {
+                            window.moduleCloud.positionModules();
+                        }
+                        console.log(`Loaded ${window.moduleCloud.modules.length} modules`);
+                    }
+                } else {
+                    console.log('ModuleCloud or modules array not properly initialized');
                 }
             } else {
                 console.warn('Default modules not found in window object. Make sure modules.js is loaded properly.');

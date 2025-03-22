@@ -63,6 +63,19 @@
     font-weight: bold;
 }
 
+/* Fix button overlap in controls */
+.controls .file-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: flex-start;
+}
+
+#loginButton {
+    margin-right: 5px;
+    min-width: 60px;
+}
+
 /* Improve dropdown visibility */
 .dropdown-content {
     display: none;

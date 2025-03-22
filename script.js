@@ -802,9 +802,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set default light mode and background color
     document.body.classList.add('light-mode');
     document.body.style.backgroundColor = '#ffffff';
-    // Initialize sidebar as collapsed by default
-    const sidebarContainer = document.querySelector('.sidebar-container');
-    if (sidebarContainer) sidebarContainer.classList.add('collapsed');
     
     // Check authentication status then load ModuleCloud accordingly
     checkAuthenticationStatus().then(isAuthenticated => {
