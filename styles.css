@@ -82,9 +82,22 @@ canvas:active {
     background: transparent;
 }
 
+.sidebar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-container.collapsed {
+    transform: translateX(-250px);
+}
+
 .sidebar {
     position: relative;
-    width: 300px;
+    width: 250px;
     height: 100%;
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(10px);
@@ -92,6 +105,8 @@ canvas:active {
     scrollbar-width: thin;
     scrollbar-color: #666 transparent;
     direction: rtl;
+    padding: 10px;
+    box-sizing: border-box;
 }
 
 .sidebar > * {
@@ -145,17 +160,18 @@ body.light-mode .sidebar::-webkit-scrollbar-thumb {
 
 .sidebar-toggle {
     position: absolute;
-    left: 100%;
+    right: -30px;
     top: 50%;
     transform: translateY(-50%);
+    width: 30px;
+    height: 60px;
     background: rgba(0, 0, 0, 0.8);
     color: white;
     border: none;
-    padding: 10px 15px;
-    cursor: pointer;
-    font-size: 24px;
     border-radius: 0 5px 5px 0;
-    backdrop-filter: blur(10px);
+    cursor: pointer;
+    z-index: 1001;
+    font-size: 16px;
 }
 
 .sidebar.visible + .sidebar-toggle {
@@ -899,22 +915,23 @@ body.light-mode .social-icons a:hover {
 }
 
 .sidebar-container.collapsed {
-    transform: translateX(-300px);
+    transform: translateX(-250px);
 }
 
 .sidebar-toggle {
     position: absolute;
-    left: 100%;
+    right: -30px;
     top: 50%;
     transform: translateY(-50%);
+    width: 30px;
+    height: 60px;
     background: rgba(0, 0, 0, 0.8);
     color: white;
     border: none;
-    padding: 10px 15px;
-    cursor: pointer;
-    font-size: 24px;
     border-radius: 0 5px 5px 0;
-    backdrop-filter: blur(10px);
+    cursor: pointer;
+    z-index: 1001;
+    font-size: 16px;
 }
 
 /* RTL Support */
