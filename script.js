@@ -76,12 +76,16 @@ class ModuleCloud {
             this.initializeWithDefaultModules(window.defaultModules);
         }
 
-        // Expose globally
+        // Expose globally for easy access
         window.moduleCloud = this;
 
         this.setupEventListeners();
         this.resizeCanvas();
         this.loadModules();
+        
+        // Log the state for debugging
+        console.log(`ModuleCloud initialized with ${this.modules.length} modules, userTier: ${this.userTier}`);
+        
         this.animate();
     }
     
@@ -106,12 +110,19 @@ class ModuleCloud {
 
     loadModules() {
         console.log('Loading modules');
+        if (this.modules && this.modules.length > 0) {
+            console.log(`Already have ${this.modules.length} modules loaded, skipping reload`);
+            this.positionModules();
+            return;
+        }
+        
         if (this.defaultModules && this.defaultModules.length > 0) {
-            console.log(`Using ${this.defaultModules.length} default modules from modules.js`);
+            console.log(`Using ${this.defaultModules.length} default modules from initialization`);
             this.modules = [...this.defaultModules];
             this.positionModules();
             return;
         }
+        
         if (window.defaultModules && Array.isArray(window.defaultModules)) {
             console.log(`Using ${window.defaultModules.length} modules from window.defaultModules`);
             this.modules = window.defaultModules.map(module => 
@@ -124,8 +135,10 @@ class ModuleCloud {
                 )
             );
             this.positionModules();
+            console.log(`Successfully loaded ${this.modules.length} modules, positioning them now`);
             return;
         }
+        
         console.warn('No modules available, initializing with empty array');
         this.modules = [];
         this.positionModules();
@@ -202,12 +215,18 @@ class ModuleCloud {
             });
         });
 
-        // Sidebar toggle (only one listener here)
+        // Sidebar toggle - Remove any existing listeners first
         const sidebarToggle = document.querySelector('.sidebar-toggle');
         const sidebarContainer = document.querySelector('.sidebar-container');
         if (sidebarToggle && sidebarContainer) {
-            sidebarContainer.classList.add('collapsed'); // start collapsed
-            sidebarToggle.addEventListener('click', () => {
+            // Remove existing listener to avoid duplicates
+            const oldToggle = sidebarToggle.cloneNode(true);
+            if (sidebarToggle.parentNode) {
+                sidebarToggle.parentNode.replaceChild(oldToggle, sidebarToggle);
+            }
+            
+            // Add new listener
+            oldToggle.addEventListener('click', () => {
                 sidebarContainer.classList.toggle('collapsed');
                 console.log('Sidebar toggled:', sidebarContainer.classList.contains('collapsed') ? 'collapsed' : 'expanded');
             });
@@ -216,26 +235,26 @@ class ModuleCloud {
         }
 
         // Font size controls
-        document.getElementById('increaseFontSize').addEventListener('click', () => {
+        document.getElementById('increaseFontSize')?.addEventListener('click', () => {
             this.fontSizeMultiplier += 0.1;
         });
-        document.getElementById('decreaseFontSize').addEventListener('click', () => {
+        document.getElementById('decreaseFontSize')?.addEventListener('click', () => {
             this.fontSizeMultiplier = Math.max(0.5, this.fontSizeMultiplier - 0.1);
         });
 
         // Module management buttons
-        document.getElementById('addModule').addEventListener('click', () => {
-            document.querySelector('#addModule + .dropdown-content').classList.toggle('show');
+        document.getElementById('addModule')?.addEventListener('click', () => {
+            document.querySelector('#addModule + .dropdown-content')?.classList.toggle('show');
         });
-        document.getElementById('moduleForm').addEventListener('submit', (e) => {
+        document.getElementById('moduleForm')?.addEventListener('submit', (e) => {
             e.preventDefault();
             this.addNewModule();
         });
-        document.getElementById('deleteModule').addEventListener('click', () => {
+        document.getElementById('deleteModule')?.addEventListener('click', () => {
             this.isDeleteMode = !this.isDeleteMode;
             this.isEditMode = false;
-            document.getElementById('deleteModule').classList.toggle('active');
-            document.getElementById('editModule').classList.remove('active');
+            document.getElementById('deleteModule')?.classList.toggle('active');
+            document.getElementById('editModule')?.classList.remove('active');
         });
         const editModuleBtn = document.getElementById('editModule');
         if (editModuleBtn) {
@@ -264,16 +283,16 @@ class ModuleCloud {
         }
 
         // Background color picker and dark mode toggle
-        document.getElementById('bgColor').addEventListener('input', (e) => {
+        document.getElementById('bgColor')?.addEventListener('input', (e) => {
             this.bgColor = e.target.value;
             document.body.style.backgroundColor = this.bgColor;
         });
-        document.getElementById('toggleMode').addEventListener('click', () => {
+        document.getElementById('toggleMode')?.addEventListener('click', () => {
             this.toggleDarkMode();
         });
 
         // Save and load index buttons
-        document.getElementById('saveIndex').addEventListener('click', () => {
+        document.getElementById('saveIndex')?.addEventListener('click', () => {
             this.saveModulesToFile();
         });
         const loadIndexBtn = document.getElementById('loadIndex');
@@ -282,6 +301,7 @@ class ModuleCloud {
                 const fileInput = document.getElementById('fileInput');
                 if (fileInput) {
                     fileInput.value = '';
+                    fileInput.accept = '.json';  // Set to accept JSON files explicitly
                     fileInput.click();
                     console.log('File input clicked');
                 } else {
@@ -293,7 +313,15 @@ class ModuleCloud {
         }
         const fileInput = document.getElementById('fileInput');
         if (fileInput) {
-            fileInput.addEventListener('change', (e) => {
+            // Update the accept attribute
+            fileInput.accept = '.json';
+            
+            // Remove existing listener
+            const newFileInput = fileInput.cloneNode(true);
+            fileInput.parentNode.replaceChild(newFileInput, fileInput);
+            
+            // Add new listener
+            newFileInput.addEventListener('change', (e) => {
                 if (e.target.files && e.target.files.length > 0) {
                     const file = e.target.files[0];
                     console.log('Selected file:', file.name);
@@ -307,7 +335,7 @@ class ModuleCloud {
         }
 
         // Premium upgrade button
-        document.getElementById('requestPremium').addEventListener('click', () => {
+        document.getElementById('requestPremium')?.addEventListener('click', () => {
             window.location.href = 'mailto:Eyalizenman@gmail.com?subject=Premium%20Access%20Request&body=I%20would%20like%20to%20upgrade%20to%20premium%20access%20for%20$5%20lifetime%20fee.';
         });
     }
@@ -733,14 +761,69 @@ async function checkUserTierAndLoadModules() {
             return;
         }
         console.log('Loading module cloud for authenticated user');
+        console.log('User metadata:', user.user_metadata);
+        
+        // Check premium status from user_metadata directly
         const isPremium = user.user_metadata?.is_premium === true;
         console.log(`User is ${isPremium ? 'premium' : 'free'} tier`);
+        
+        // If not found in metadata, check the users table directly
+        if (!isPremium) {
+            try {
+                const { data, error } = await window.supabase
+                    .from('users')
+                    .select('is_premium')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (error) {
+                    console.error('Error fetching user data:', error);
+                } else if (data) {
+                    console.log('User data from database:', data);
+                    const dbIsPremium = data.is_premium === true;
+                    console.log(`User premium status from database: ${dbIsPremium}`);
+                    
+                    // Update user metadata if database shows premium but metadata doesn't
+                    if (dbIsPremium && !isPremium) {
+                        const { error: updateError } = await window.supabase.auth.updateUser({
+                            data: { is_premium: true }
+                        });
+                        
+                        if (updateError) {
+                            console.error('Error updating user metadata:', updateError);
+                        } else {
+                            console.log('Updated user metadata to premium');
+                        }
+                    }
+                    
+                    // Use the database value for premium status
+                    loadModuleCloud(dbIsPremium);
+                    showWelcomeMessage(user.email, dbIsPremium);
+                    if (dbIsPremium) {
+                        const loginButton = document.getElementById('loginButton');
+                        if (loginButton) {
+                            loginButton.innerHTML = '⭐ Premium';
+                            loginButton.classList.add('premium-user');
+                        }
+                    } else {
+                        addUpgradeButton();
+                    }
+                    return;
+                }
+            } catch (dbError) {
+                console.error('Exception checking database premium status:', dbError);
+            }
+        }
+        
+        // Fall back to metadata value if database check fails
         loadModuleCloud(isPremium);
         showWelcomeMessage(user.email, isPremium);
         if (isPremium) {
             const loginButton = document.getElementById('loginButton');
-            loginButton.innerHTML = '⭐ Premium';
-            loginButton.classList.add('premium-user');
+            if (loginButton) {
+                loginButton.innerHTML = '⭐ Premium';
+                loginButton.classList.add('premium-user');
+            }
         } else {
             addUpgradeButton();
         }
@@ -752,9 +835,13 @@ async function checkUserTierAndLoadModules() {
 
 function loadModuleCloud(isPremium = false) {
     // Create the ModuleCloud instance only once
-    window.moduleCloud = new ModuleCloud();
+    if (!window.moduleCloud) {
+        window.moduleCloud = new ModuleCloud();
+    }
     window.moduleCloud.userTier = isPremium ? 'premium' : 'free';
     console.log(`Loading ${isPremium ? 'premium' : 'free'} tier modules`);
+    
+    // Reload modules to ensure correct permissions
     window.moduleCloud.loadModules();
 }
 

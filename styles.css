@@ -89,6 +89,7 @@ canvas:active {
     height: 100%;
     z-index: 1000;
     transition: transform 0.3s ease;
+    width: 250px;
 }
 
 .sidebar-container.collapsed {
@@ -172,6 +173,9 @@ body.light-mode .sidebar::-webkit-scrollbar-thumb {
     cursor: pointer;
     z-index: 1001;
     font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .sidebar.visible + .sidebar-toggle {

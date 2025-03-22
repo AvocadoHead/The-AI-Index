@@ -19,6 +19,61 @@ const initSupabase = ()  => {
     }
 };
 
+// Function to check premium status directly from database
+const checkPremiumStatusFromDB = async (userId) => {
+    if (!userId) {
+        console.log('No user ID provided for premium check');
+        return false;
+    }
+    
+    const supabaseClient = initSupabase();
+    if (!supabaseClient) {
+        console.error('Failed to initialize Supabase client for premium check');
+        return false;
+    }
+    
+    try {
+        // First check the users table
+        const { data, error } = await supabaseClient
+            .from('users')
+            .select('is_premium')
+            .eq('id', userId)
+            .single();
+            
+        if (error) {
+            console.error('Error fetching premium status from users table:', error);
+            return false;
+        }
+        
+        if (data && data.is_premium === true) {
+            console.log('User is premium according to users table');
+            
+            // Update user metadata if needed
+            try {
+                const { error: updateError } = await supabaseClient.auth.updateUser({
+                    data: { is_premium: true }
+                });
+                
+                if (updateError) {
+                    console.error('Error updating user premium metadata:', updateError);
+                } else {
+                    console.log('Updated user metadata with premium status');
+                }
+            } catch (updateErr) {
+                console.error('Exception updating user metadata:', updateErr);
+            }
+            
+            return true;
+        }
+        
+        console.log('User is not premium according to users table or user not found');
+        return false;
+    } catch (error) {
+        console.error('Exception checking premium status from database:', error);
+        return false;
+    }
+};
+
 // Function to fetch modules from Supabase
 const fetchModulesFromDatabase = async () => {
     try {
@@ -77,33 +132,75 @@ const loadModulesWithFallback = async () => {
     }
 };
 
+// Set user premium status
+const setUserPremiumStatus = async () => {
+    try {
+        const supabaseClient = initSupabase();
+        if (!supabaseClient) return false;
+        
+        // Get current user
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+        
+        if (userError || !user) {
+            console.error('Error getting current user:', userError);
+            return false;
+        }
+        
+        // Check premium status from database
+        const isPremium = await checkPremiumStatusFromDB(user.id);
+        
+        // Set user tier in ModuleCloud
+        if (window.moduleCloud) {
+            window.moduleCloud.userTier = isPremium ? 'premium' : 'free';
+            console.log(`Set moduleCloud user tier to ${window.moduleCloud.userTier}`);
+        }
+        
+        // Update UI based on premium status
+        if (isPremium) {
+            const loginButton = document.getElementById('loginButton');
+            if (loginButton) {
+                loginButton.innerHTML = '⭐ Premium';
+                loginButton.classList.add('premium-user');
+            }
+        }
+        
+        return isPremium;
+    } catch (error) {
+        console.error('Error setting user premium status:', error);
+        return false;
+    }
+};
+
 // Initialize modules when the page loads
 document.addEventListener('DOMContentLoaded', async () => {
     // Wait a bit to ensure other scripts have loaded
     setTimeout(async () => {
         try {
+            // Check and set premium status first
+            await setUserPremiumStatus();
+            
             // Force the moduleCloud to initialize with default modules
             if (typeof window.defaultModules !== 'undefined') {
                 console.log('Default modules found:', window.defaultModules.length);
-                if (window.moduleCloud && typeof window.moduleCloud.initializeModules === 'function') {
-                    window.moduleCloud.initializeModules(window.defaultModules);
-                    console.log('Initialized module cloud with default modules');
+                if (!window.moduleCloud) {
+                    console.log('Creating ModuleCloud instance');
+                    window.moduleCloud = new ModuleCloud();
+                } else {
+                    console.log('ModuleCloud instance already exists');
+                }
+                
+                // Make sure modules are loaded and visible
+                if (window.moduleCloud.modules.length === 0) {
+                    console.log('Loading modules into ModuleCloud');
+                    window.moduleCloud.loadModules();
+                    window.moduleCloud.positionModules();
+                    console.log(`Loaded ${window.moduleCloud.modules.length} modules`);
                 }
             } else {
                 console.warn('Default modules not found in window object. Make sure modules.js is loaded properly.');
             }
-            
-            const loadedModules = await loadModulesWithFallback();
-            if (loadedModules && loadedModules.length > 0) {
-                // Use the loaded modules to populate the UI
-                console.log(`Loaded ${loadedModules.length} modules`);
-                // Make modules available to other scripts
-                window.databaseModules = loadedModules;
-            } else {
-                console.warn('No modules were loaded');
-            }
         } catch (err) {
-            console.error('Error loading modules:', err);
+            console.error('Error during module initialization:', err);
         }
     }, 1000); // Increase timeout to ensure scripts are loaded
 });
@@ -111,5 +208,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Expose module loading functionality to window
 window.moduleDatabase = {
     fetchModules: loadModulesWithFallback,
-    isPremium: isPremiumModule
+    isPremium: isPremiumModule,
+    checkPremiumStatus: checkPremiumStatusFromDB,
+    setUserPremiumStatus: setUserPremiumStatus
 }; 
