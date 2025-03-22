@@ -33,40 +33,71 @@ const checkPremiumStatusFromDB = async (userId) => {
     }
     
     try {
-        // First check the users table
-        const { data, error } = await supabaseClient
-            .from('users')
-            .select('is_premium')
-            .eq('id', userId)
-            .single();
-            
-        if (error) {
-            console.error('Error fetching premium status from users table:', error);
-            return false;
+        // First check if the user has premium status in their metadata
+        const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+        if (!userError && userData && userData.user && userData.user.user_metadata && userData.user.user_metadata.is_premium === true) {
+            console.log('User is premium according to user metadata');
+            return true;
         }
         
-        if (data && data.is_premium === true) {
-            console.log('User is premium according to users table');
+        // Then check the users table
+        try {
+            const { data, error } = await supabaseClient
+                .from('users')
+                .select('is_premium')
+                .eq('id', userId);
+                
+            if (error) {
+                console.error('Error fetching premium status from users table:', error);
+                // Continue to fallback check
+            } else if (data && data.length > 0 && data[0].is_premium === true) {
+                console.log('User is premium according to users table');
+                
+                // Update user metadata
+                try {
+                    const { error: updateError } = await supabaseClient.auth.updateUser({
+                        data: { is_premium: true }
+                    });
+                    
+                    if (updateError) {
+                        console.error('Error updating user premium metadata:', updateError);
+                    } else {
+                        console.log('Updated user metadata with premium status');
+                    }
+                } catch (updateErr) {
+                    console.error('Exception updating user metadata:', updateErr);
+                }
+                
+                return true;
+            }
+        } catch (tableError) {
+            console.error('Exception querying users table:', tableError);
+            // Continue to fallback check
+        }
+        
+        // Fallback: Check if the user email matches the admin email
+        if (userData && userData.user && userData.user.email === 'eyalizenman@gmail.com') {
+            console.log('Admin user detected, granting premium access');
             
-            // Update user metadata if needed
+            // Update user metadata
             try {
                 const { error: updateError } = await supabaseClient.auth.updateUser({
                     data: { is_premium: true }
                 });
                 
                 if (updateError) {
-                    console.error('Error updating user premium metadata:', updateError);
+                    console.error('Error updating admin user metadata:', updateError);
                 } else {
-                    console.log('Updated user metadata with premium status');
+                    console.log('Updated admin user metadata with premium status');
                 }
             } catch (updateErr) {
-                console.error('Exception updating user metadata:', updateErr);
+                console.error('Exception updating admin user metadata:', updateErr);
             }
             
             return true;
         }
         
-        console.log('User is not premium according to users table or user not found');
+        console.log('User is not premium according to all checks');
         return false;
     } catch (error) {
         console.error('Exception checking premium status from database:', error);

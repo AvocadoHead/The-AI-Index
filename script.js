@@ -151,9 +151,24 @@ class ModuleCloud {
                 console.log('No authenticated user found');
                 return false;
             }
-            const isPremium = user.user_metadata?.is_premium === true;
-            console.log(`User premium status from metadata: ${isPremium}`);
-            return isPremium || false;
+            
+            // First check user metadata
+            const isPremiumFromMetadata = user.user_metadata?.is_premium === true;
+            if (isPremiumFromMetadata) {
+                console.log(`User premium status from metadata: true`);
+                return true;
+            }
+            
+            // Then check via the database module function
+            if (window.moduleDatabase && typeof window.moduleDatabase.checkPremiumStatus === 'function') {
+                const isPremiumFromDB = await window.moduleDatabase.checkPremiumStatus(user.id);
+                console.log(`User premium status from database check: ${isPremiumFromDB}`);
+                return isPremiumFromDB;
+            }
+            
+            // Fallback to metadata check
+            console.log(`User premium status from metadata fallback: ${isPremiumFromMetadata}`);
+            return isPremiumFromMetadata || false;
         } catch (error) {
             console.error('Error checking premium status:', error);
             return false;
@@ -206,389 +221,521 @@ class ModuleCloud {
         document.querySelectorAll('.sidebar button').forEach(button => {
             button.addEventListener('click', () => {
                 const category = button.getAttribute('data-category');
-                console.log('Category selected:', category);
-                document.querySelectorAll('.sidebar button').forEach(btn => btn.classList.remove('active'));
+                this.filterByCategory(category);
+                
+                // Update active state
+                document.querySelectorAll('.sidebar button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
                 button.classList.add('active');
-                this.selectedCategories.clear();
-                this.selectedCategories.add(category);
-                this.positionModules();
             });
         });
 
-        // Sidebar toggle - Remove any existing listeners first
+        // Sidebar toggle
         const sidebarToggle = document.querySelector('.sidebar-toggle');
-        const sidebarContainer = document.querySelector('.sidebar-container');
-        if (sidebarToggle && sidebarContainer) {
-            // Remove existing listener to avoid duplicates
-            const oldToggle = sidebarToggle.cloneNode(true);
-            if (sidebarToggle.parentNode) {
-                sidebarToggle.parentNode.replaceChild(oldToggle, sidebarToggle);
-            }
-            
-            // Add new listener
-            oldToggle.addEventListener('click', () => {
-                sidebarContainer.classList.toggle('collapsed');
-                console.log('Sidebar toggled:', sidebarContainer.classList.contains('collapsed') ? 'collapsed' : 'expanded');
-            });
-        } else {
-            console.error('Sidebar elements not found:', { toggle: !!sidebarToggle, container: !!sidebarContainer });
-        }
-
-        // Font size controls
-        document.getElementById('increaseFontSize')?.addEventListener('click', () => {
-            this.fontSizeMultiplier += 0.1;
-        });
-        document.getElementById('decreaseFontSize')?.addEventListener('click', () => {
-            this.fontSizeMultiplier = Math.max(0.5, this.fontSizeMultiplier - 0.1);
-        });
-
-        // Module management buttons
-        document.getElementById('addModule')?.addEventListener('click', () => {
-            document.querySelector('#addModule + .dropdown-content')?.classList.toggle('show');
-        });
-        document.getElementById('moduleForm')?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.addNewModule();
-        });
-        document.getElementById('deleteModule')?.addEventListener('click', () => {
-            this.isDeleteMode = !this.isDeleteMode;
-            this.isEditMode = false;
-            document.getElementById('deleteModule')?.classList.toggle('active');
-            document.getElementById('editModule')?.classList.remove('active');
-        });
-        const editModuleBtn = document.getElementById('editModule');
-        if (editModuleBtn) {
-            editModuleBtn.addEventListener('click', () => {
-                this.isEditMode = !this.isEditMode;
-                this.isDeleteMode = false;
-                editModuleBtn.classList.toggle('active');
-                const deleteModuleBtn = document.getElementById('deleteModule');
-                if (deleteModuleBtn) {
-                    deleteModuleBtn.classList.remove('active');
-                }
-                console.log('Edit mode toggled:', this.isEditMode);
-            });
-        } else {
-            console.error('Edit module button not found');
-        }
-        const editModuleFormEl = document.getElementById('editModuleForm');
-        if (editModuleFormEl) {
-            editModuleFormEl.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.updateModule();
-                console.log('Edit module form submitted');
-            });
-        } else {
-            console.error('Edit module form not found');
-        }
-
-        // Background color picker and dark mode toggle
-        document.getElementById('bgColor')?.addEventListener('input', (e) => {
-            this.bgColor = e.target.value;
-            document.body.style.backgroundColor = this.bgColor;
-        });
-        document.getElementById('toggleMode')?.addEventListener('click', () => {
-            this.toggleDarkMode();
-        });
-
-        // Save and load index buttons
-        document.getElementById('saveIndex')?.addEventListener('click', () => {
-            this.saveModulesToFile();
-        });
-        const loadIndexBtn = document.getElementById('loadIndex');
-        if (loadIndexBtn) {
-            loadIndexBtn.addEventListener('click', () => {
-                const fileInput = document.getElementById('fileInput');
-                if (fileInput) {
-                    fileInput.value = '';
-                    fileInput.accept = '.json';  // Set to accept JSON files explicitly
-                    fileInput.click();
-                    console.log('File input clicked');
-                } else {
-                    console.error('File input element not found');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                const sidebarContainer = document.querySelector('.sidebar-container');
+                if (sidebarContainer) {
+                    sidebarContainer.classList.toggle('collapsed');
+                    // Update toggle button text
+                    sidebarToggle.textContent = sidebarContainer.classList.contains('collapsed') ? '❯' : '❮';
                 }
             });
-        } else {
-            console.error('Load index button not found');
         }
+
+        // Background color picker
+        const bgColorPicker = document.getElementById('bgColor');
+        if (bgColorPicker) {
+            bgColorPicker.addEventListener('input', (e) => {
+                this.bgColor = e.target.value;
+                document.body.style.backgroundColor = this.bgColor;
+            });
+        }
+
+        // Dark mode toggle
+        const toggleModeButton = document.getElementById('toggleMode');
+        if (toggleModeButton) {
+            toggleModeButton.addEventListener('click', () => {
+                this.toggleDarkMode();
+            });
+        }
+
+        // Save index button
+        const saveIndexButton = document.getElementById('saveIndex');
+        if (saveIndexButton) {
+            saveIndexButton.addEventListener('click', () => {
+                this.saveModulesToFile();
+            });
+        }
+
+        // Load index button
+        const loadIndexButton = document.getElementById('loadIndex');
+        if (loadIndexButton) {
+            loadIndexButton.addEventListener('click', () => {
+                document.getElementById('fileInput').click();
+            });
+        }
+
+        // File input change
         const fileInput = document.getElementById('fileInput');
         if (fileInput) {
-            // Update the accept attribute
-            fileInput.accept = '.json';
-            
-            // Remove existing listener
-            const newFileInput = fileInput.cloneNode(true);
-            fileInput.parentNode.replaceChild(newFileInput, fileInput);
-            
-            // Add new listener
-            newFileInput.addEventListener('change', (e) => {
-                if (e.target.files && e.target.files.length > 0) {
-                    const file = e.target.files[0];
-                    console.log('Selected file:', file.name);
-                    this.loadModulesFromFile(file);
-                } else {
-                    console.log('No file selected');
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    this.loadModulesFromFile(e.target.files[0]);
                 }
             });
-        } else {
-            console.error('File input not found for event handler');
         }
 
-        // Premium upgrade button
-        document.getElementById('requestPremium')?.addEventListener('click', () => {
-            window.location.href = 'mailto:Eyalizenman@gmail.com?subject=Premium%20Access%20Request&body=I%20would%20like%20to%20upgrade%20to%20premium%20access%20for%20$5%20lifetime%20fee.';
-        });
+        // Add module form
+        const moduleForm = document.getElementById('moduleForm');
+        if (moduleForm) {
+            moduleForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.addNewModule();
+            });
+        }
+
+        // Edit module form
+        const editModuleForm = document.getElementById('editModuleForm');
+        if (editModuleForm) {
+            editModuleForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.updateSelectedModule();
+            });
+        }
+
+        // Delete module button
+        const deleteModuleButton = document.getElementById('deleteModule');
+        if (deleteModuleButton) {
+            deleteModuleButton.addEventListener('click', () => {
+                this.toggleDeleteMode();
+            });
+        }
+
+        // Edit module button
+        const editModuleButton = document.getElementById('editModule');
+        if (editModuleButton) {
+            editModuleButton.addEventListener('click', () => {
+                this.toggleEditMode();
+            });
+        }
+        
+        // Bit payment button
+        const copyBitNumberButton = document.getElementById('copyBitNumber');
+        if (copyBitNumberButton) {
+            copyBitNumberButton.addEventListener('click', () => {
+                navigator.clipboard.writeText('+972 547731650')
+                    .then(() => {
+                        alert('Bit phone number copied to clipboard: +972 547731650');
+                    })
+                    .catch(err => {
+                        console.error('Could not copy text: ', err);
+                        alert('Please manually copy this number: +972 547731650');
+                    });
+            });
+        }
     }
 
     resizeCanvas() {
+        if (!this.canvas) return;
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
+        this.draw();
     }
 
-    // Position modules in a 3D sphere
     positionModules() {
-        const visibleModules = this.modules.filter(module => {
-            if (this.selectedCategories.has('all')) return true;
-            return module.categories.some(category => this.selectedCategories.has(category));
-        });
-        const radius = 500;
+        if (!this.modules || this.modules.length === 0) {
+            console.warn('No modules to position');
+            return;
+        }
+        
+        console.log(`Positioning ${this.modules.length} modules in 3D space`);
+        
+        // Position modules in a sphere
+        const radius = Math.min(window.innerWidth, window.innerHeight) * 0.4;
         const phi = Math.PI * (3 - Math.sqrt(5)); // Golden angle
-        visibleModules.forEach((module, i) => {
-            const y = 1 - (i / (visibleModules.length - 1)) * 2;
-            const radiusAtY = Math.sqrt(1 - y * y);
-            const theta = phi * i;
-            module.targetX = radius * radiusAtY * Math.cos(theta);
-            module.targetY = radius * y;
-            module.targetZ = radius * radiusAtY * Math.sin(theta);
-            if (module.x === 0 && module.y === 0 && module.z === 0) {
-                module.x = module.targetX;
-                module.y = module.targetY;
-                module.z = module.targetZ;
-            }
-            module.visible = true;
+        
+        this.modules.forEach((module, i) => {
+            const y = 1 - (i / (this.modules.length - 1)) * 2; // y goes from 1 to -1
+            const radiusAtY = Math.sqrt(1 - y * y); // radius at y
+            const theta = phi * i; // Golden angle increment
+            
+            module.targetX = radiusAtY * Math.cos(theta) * radius;
+            module.targetY = y * radius;
+            module.targetZ = radiusAtY * Math.sin(theta) * radius;
+            
+            // Initialize position at target
+            module.x = module.targetX;
+            module.y = module.targetY;
+            module.z = module.targetZ;
+            
+            // Random rotation
+            module.rotationX = Math.random() * Math.PI * 2;
+            module.rotationY = Math.random() * Math.PI * 2;
         });
-        this.modules.forEach(module => {
-            if (!visibleModules.includes(module)) {
-                module.visible = false;
-            }
-        });
     }
 
-    animate() {
-        requestAnimationFrame(() => this.animate());
-        this.update();
-        this.render();
-    }
-
-    update() {
-        this.modules.forEach(module => module.update());
-    }
-
-    render() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        // Set background color
-        this.ctx.fillStyle = this.bgColor;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        // Sort modules by z for proper rendering
-        const sortedModules = [...this.modules].filter(module => module.visible).sort((a, b) => b.z - a.z);
-        sortedModules.forEach(module => {
-            // Apply camera transformations
-            const x = module.x * Math.cos(this.cameraRotationY) - module.z * Math.sin(this.cameraRotationY);
-            const z = module.x * Math.sin(this.cameraRotationY) + module.z * Math.cos(this.cameraRotationY);
-            const y = module.y * Math.cos(this.cameraRotationX) - z * Math.sin(this.cameraRotationX);
-            const z2 = module.y * Math.sin(this.cameraRotationX) + z * Math.cos(this.cameraRotationX);
-            const scale = this.zoomLevel * (800 / (800 + z2));
-            const screenX = this.canvas.width / 2 + x * scale;
-            const screenY = this.canvas.height / 2 + y * scale;
-            if (screenX < -100 || screenX > this.canvas.width + 100 || screenY < -100 || screenY > this.canvas.height + 100) return;
-            const fontSize = Math.max(10, 20 * scale * this.fontSizeMultiplier);
-            this.ctx.font = `${fontSize}px Heebo, sans-serif`;
-            this.ctx.textAlign = 'center';
-            this.ctx.textBaseline = 'middle';
-            // Determine text color based on mode and module status
-            if (this.isDarkMode) {
-                if (module === this.hoveredModule) {
-                    this.ctx.fillStyle = '#ffcc00';
-                } else if (module === this.selectedModule) {
-                    this.ctx.fillStyle = '#ff6600';
-                } else if (module.isPremium && this.userTier === 'free') {
-                    this.ctx.fillStyle = '#888888';
-                } else {
-                    this.ctx.fillStyle = '#ffffff';
+    filterByCategory(category) {
+        if (category === 'all') {
+            this.selectedCategories = new Set(['all']);
+        } else {
+            this.selectedCategories.delete('all');
+            if (this.selectedCategories.has(category)) {
+                this.selectedCategories.delete(category);
+                if (this.selectedCategories.size === 0) {
+                    this.selectedCategories.add('all');
                 }
             } else {
-                if (module === this.hoveredModule) {
-                    this.ctx.fillStyle = '#ff6600';
-                } else if (module === this.selectedModule) {
-                    this.ctx.fillStyle = '#cc3300';
-                } else if (module.isPremium && this.userTier === 'free') {
-                    this.ctx.fillStyle = '#888888';
-                } else {
-                    this.ctx.fillStyle = '#000000';
-                }
+                this.selectedCategories.add(category);
             }
-            this.ctx.fillText(module.name, screenX, screenY);
-            // Draw indicators if in edit/delete mode
-            if ((this.isEditMode || this.isDeleteMode) && module === this.hoveredModule) {
-                this.ctx.beginPath();
-                this.ctx.arc(screenX, screenY, fontSize * 0.8, 0, Math.PI * 2);
-                this.ctx.strokeStyle = this.isDeleteMode ? '#ff0000' : '#00ff00';
-                this.ctx.lineWidth = 2;
-                this.ctx.stroke();
+        }
+        
+        // Update module visibility
+        this.modules.forEach(module => {
+            if (this.selectedCategories.has('all')) {
+                module.visible = true;
+            } else {
+                const moduleCategories = module.categories.split(',').map(c => c.trim());
+                module.visible = moduleCategories.some(c => this.selectedCategories.has(c));
             }
         });
+        
+        // Reposition visible modules
+        this.positionModules();
     }
 
     handleModuleHover(mouseX, mouseY) {
-        const hoveredModule = this.findModuleAtPosition(mouseX, mouseY);
+        // Project 3D positions to 2D screen coordinates
+        const projectedModules = this.modules
+            .filter(module => module.visible)
+            .map(module => {
+                const { x: screenX, y: screenY, z: screenZ } = this.project3DTo2D(module.x, module.y, module.z);
+                return { module, screenX, screenY, screenZ };
+            });
+        
+        // Sort by Z to handle overlapping
+        projectedModules.sort((a, b) => a.screenZ - b.screenZ);
+        
+        // Find hovered module
+        const hoverRadius = 50; // Hover detection radius
+        let hoveredModule = null;
+        
+        for (let i = projectedModules.length - 1; i >= 0; i--) {
+            const { module, screenX, screenY } = projectedModules[i];
+            const distance = Math.sqrt(Math.pow(screenX - mouseX, 2) + Math.pow(screenY - mouseY, 2));
+            
+            if (distance < hoverRadius) {
+                hoveredModule = module;
+                break;
+            }
+        }
+        
+        // Update tooltip
         if (hoveredModule !== this.hoveredModule) {
             this.hoveredModule = hoveredModule;
+            
             if (hoveredModule) {
+                // Show tooltip with module info
                 this.tooltipElement.innerHTML = `
                     <strong>${hoveredModule.name}</strong><br>
-                    ${hoveredModule.categories.join(', ')}<br>
+                    ${hoveredModule.categories}<br>
                     ${hoveredModule.isPremium ? '⭐ Premium' : ''}
                 `;
-                this.tooltipElement.style.display = 'block';
                 this.tooltipElement.style.left = `${mouseX + 10}px`;
                 this.tooltipElement.style.top = `${mouseY + 10}px`;
+                this.tooltipElement.classList.add('visible');
             } else {
-                this.tooltipElement.style.display = 'none';
+                // Hide tooltip
+                this.tooltipElement.classList.remove('visible');
             }
         } else if (hoveredModule) {
+            // Update tooltip position
             this.tooltipElement.style.left = `${mouseX + 10}px`;
             this.tooltipElement.style.top = `${mouseY + 10}px`;
         }
     }
 
     handleModuleClick(mouseX, mouseY) {
-        const clickedModule = this.findModuleAtPosition(mouseX, mouseY);
-        if (!clickedModule) return;
-        if (this.isEditMode) {
-            this.editModule(clickedModule);
-            return;
+        // Similar to hover detection but for clicks
+        const projectedModules = this.modules
+            .filter(module => module.visible)
+            .map(module => {
+                const { x: screenX, y: screenY, z: screenZ } = this.project3DTo2D(module.x, module.y, module.z);
+                return { module, screenX, screenY, screenZ };
+            });
+        
+        projectedModules.sort((a, b) => a.screenZ - b.screenZ);
+        
+        const clickRadius = 50;
+        let clickedModule = null;
+        
+        for (let i = projectedModules.length - 1; i >= 0; i--) {
+            const { module, screenX, screenY } = projectedModules[i];
+            const distance = Math.sqrt(Math.pow(screenX - mouseX, 2) + Math.pow(screenY - mouseY, 2));
+            
+            if (distance < clickRadius) {
+                clickedModule = module;
+                break;
+            }
         }
-        if (this.isDeleteMode) {
-            this.deleteModule(clickedModule);
-            return;
+        
+        if (clickedModule) {
+            if (this.isDeleteMode) {
+                // Delete the module
+                this.deleteModule(clickedModule);
+                this.isDeleteMode = false;
+                document.getElementById('deleteModule').classList.remove('active');
+            } else if (this.isEditMode) {
+                // Edit the module
+                this.selectedModule = clickedModule;
+                this.populateEditForm(clickedModule);
+                this.isEditMode = false;
+                document.getElementById('editModule').classList.remove('active');
+            } else {
+                // Open the module URL
+                if (clickedModule.isPremium && this.userTier !== 'premium') {
+                    // Show premium upgrade modal
+                    document.getElementById('premiumModal').style.display = 'block';
+                } else {
+                    // Open the URL
+                    window.open(clickedModule.url, '_blank');
+                }
+            }
         }
-        if (clickedModule.isPremium && this.userTier === 'free') {
-            document.getElementById('premiumModal').style.display = 'block';
-            return;
-        }
-        this.selectedModule = clickedModule;
-        window.open(clickedModule.url, '_blank');
     }
 
-    findModuleAtPosition(mouseX, mouseY) {
-        for (const module of this.modules) {
-            if (!module.visible) continue;
-            const x = module.x * Math.cos(this.cameraRotationY) - module.z * Math.sin(this.cameraRotationY);
-            const z = module.x * Math.sin(this.cameraRotationY) + module.z * Math.cos(this.cameraRotationY);
-            const y = module.y * Math.cos(this.cameraRotationX) - z * Math.sin(this.cameraRotationX);
-            const z2 = module.y * Math.sin(this.cameraRotationX) + z * Math.cos(this.cameraRotationX);
-            const scale = this.zoomLevel * (800 / (800 + z2));
-            const screenX = this.canvas.width / 2 + x * scale;
-            const screenY = this.canvas.height / 2 + y * scale;
-            const fontSize = Math.max(10, 20 * scale * this.fontSizeMultiplier);
-            const hitRadius = fontSize * module.name.length * 0.25;
-            const distance = Math.sqrt(Math.pow(mouseX - screenX, 2) + Math.pow(mouseY - screenY, 2));
-            if (distance < hitRadius) return module;
+    project3DTo2D(x, y, z) {
+        // Apply camera rotation
+        const cosY = Math.cos(this.cameraRotationY);
+        const sinY = Math.sin(this.cameraRotationY);
+        const cosX = Math.cos(this.cameraRotationX);
+        const sinX = Math.sin(this.cameraRotationX);
+        
+        const rotatedX = cosY * x - sinY * z;
+        const rotatedZ = sinY * x + cosY * z;
+        const rotatedY = cosX * y - sinX * rotatedZ;
+        const finalZ = sinX * y + cosX * rotatedZ;
+        
+        // Apply perspective projection
+        const focalLength = 500;
+        const scale = focalLength / (focalLength + finalZ);
+        
+        const screenX = this.canvas.width / 2 + rotatedX * scale * this.zoomLevel;
+        const screenY = this.canvas.height / 2 + rotatedY * scale * this.zoomLevel;
+        
+        return { x: screenX, y: screenY, z: finalZ };
+    }
+
+    draw() {
+        if (!this.ctx) return;
+        
+        // Clear canvas
+        this.ctx.fillStyle = this.bgColor;
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Update module positions
+        this.modules.forEach(module => module.update());
+        
+        // Project and sort modules by Z for proper rendering
+        const projectedModules = this.modules
+            .filter(module => module.visible)
+            .map(module => {
+                const { x: screenX, y: screenY, z: screenZ } = this.project3DTo2D(module.x, module.y, module.z);
+                return { module, screenX, screenY, screenZ };
+            });
+        
+        projectedModules.sort((a, b) => a.screenZ - b.screenZ);
+        
+        // Draw modules
+        projectedModules.forEach(({ module, screenX, screenY, screenZ }) => {
+            // Calculate size based on Z position
+            const baseSize = 20;
+            const sizeScale = Math.max(0.5, Math.min(2, 1 + screenZ / 1000));
+            const size = baseSize * sizeScale * this.zoomLevel;
+            
+            // Calculate opacity based on Z position
+            const opacity = Math.max(0.3, Math.min(1, 1 - screenZ / 2000));
+            
+            // Calculate color based on score
+            const score = module.getAverageScore(this.selectedCategories);
+            const hue = 120 * score / 100; // Green for high scores, red for low
+            
+            // Draw module circle
+            this.ctx.beginPath();
+            this.ctx.arc(screenX, screenY, size, 0, Math.PI * 2);
+            
+            // Fill with gradient
+            const gradient = this.ctx.createRadialGradient(
+                screenX, screenY, 0,
+                screenX, screenY, size
+            );
+            
+            if (module === this.hoveredModule) {
+                // Highlight hovered module
+                gradient.addColorStop(0, `hsla(${hue}, 100%, 70%, ${opacity})`);
+                gradient.addColorStop(1, `hsla(${hue}, 100%, 50%, ${opacity})`);
+            } else {
+                gradient.addColorStop(0, `hsla(${hue}, 80%, 60%, ${opacity})`);
+                gradient.addColorStop(1, `hsla(${hue}, 80%, 40%, ${opacity})`);
+            }
+            
+            this.ctx.fillStyle = gradient;
+            this.ctx.fill();
+            
+            // Add premium indicator
+            if (module.isPremium) {
+                this.ctx.fillStyle = `rgba(255, 215, 0, ${opacity})`;
+                this.ctx.beginPath();
+                this.ctx.arc(screenX + size * 0.7, screenY - size * 0.7, size * 0.3, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.fillStyle = `rgba(0, 0, 0, ${opacity})`;
+                this.ctx.font = `${size * 0.4}px Arial`;
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText('⭐', screenX + size * 0.7, screenY - size * 0.7);
+            }
+            
+            // Draw module name
+            this.ctx.font = `${size * this.fontSizeMultiplier}px Arial`;
+            this.ctx.fillStyle = this.isDarkMode ? `rgba(255, 255, 255, ${opacity})` : `rgba(0, 0, 0, ${opacity})`;
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillText(module.name, screenX, screenY);
+        });
+    }
+
+    animate() {
+        this.draw();
+        requestAnimationFrame(() => this.animate());
+    }
+
+    toggleDarkMode() {
+        this.isDarkMode = !this.isDarkMode;
+        document.body.classList.toggle('dark-mode');
+        
+        if (this.isDarkMode) {
+            this.bgColor = '#121212';
+            document.body.style.backgroundColor = this.bgColor;
+            document.getElementById('bgColor').value = this.bgColor;
+        } else {
+            this.bgColor = '#ffffff';
+            document.body.style.backgroundColor = this.bgColor;
+            document.getElementById('bgColor').value = this.bgColor;
         }
-        return null;
+    }
+
+    toggleDeleteMode() {
+        this.isDeleteMode = !this.isDeleteMode;
+        document.getElementById('deleteModule').classList.toggle('active', this.isDeleteMode);
+        this.isEditMode = false;
+        document.getElementById('editModule').classList.remove('active');
+    }
+
+    toggleEditMode() {
+        this.isEditMode = !this.isEditMode;
+        document.getElementById('editModule').classList.toggle('active', this.isEditMode);
+        this.isDeleteMode = false;
+        document.getElementById('deleteModule').classList.remove('active');
+    }
+
+    deleteModule(module) {
+        const index = this.modules.indexOf(module);
+        if (index !== -1) {
+            this.modules.splice(index, 1);
+            this.positionModules();
+            alert(`Module "${module.name}" deleted`);
+        }
+    }
+
+    populateEditForm(module) {
+        document.getElementById('editModuleName').value = module.name;
+        document.getElementById('editModuleUrl').value = module.url;
+        
+        // Format categories and scores for the form
+        const categoryScores = [];
+        for (const category in module.scores) {
+            categoryScores.push(`${category}:${module.scores[category]}`);
+        }
+        document.getElementById('editModuleCategories').value = categoryScores.join(', ');
+        
+        // Show the edit form dropdown
+        document.getElementById('editModuleDropdown').style.display = 'block';
+    }
+
+    updateSelectedModule() {
+        if (!this.selectedModule) return;
+        
+        const name = document.getElementById('editModuleName').value;
+        const url = document.getElementById('editModuleUrl').value;
+        const categoriesInput = document.getElementById('editModuleCategories').value;
+        
+        if (!name || !url || !categoriesInput) {
+            alert('Please fill in all fields');
+            return;
+        }
+        
+        // Parse categories and scores
+        const categoryPairs = categoriesInput.split(',').map(pair => pair.trim());
+        const categories = categoryPairs.map(pair => pair.split(':')[0]).join(', ');
+        const scores = {};
+        
+        categoryPairs.forEach(pair => {
+            const [category, score] = pair.split(':');
+            scores[category.trim()] = parseInt(score.trim(), 10) || 50;
+        });
+        
+        // Update the module
+        this.selectedModule.name = name;
+        this.selectedModule.url = url;
+        this.selectedModule.categories = categories;
+        this.selectedModule.scores = scores;
+        
+        // Hide the edit form dropdown
+        document.getElementById('editModuleDropdown').style.display = 'none';
+        this.selectedModule = null;
+        
+        alert('Module updated successfully');
     }
 
     addNewModule() {
         const name = document.getElementById('moduleName').value;
         const url = document.getElementById('moduleUrl').value;
         const categoriesInput = document.getElementById('moduleCategories').value;
+        
         if (!name || !url || !categoriesInput) {
             alert('Please fill in all fields');
             return;
         }
+        
+        // Parse categories and scores
         const categoryPairs = categoriesInput.split(',').map(pair => pair.trim());
-        const categories = [];
+        const categories = categoryPairs.map(pair => pair.split(':')[0]).join(', ');
         const scores = {};
+        
         categoryPairs.forEach(pair => {
-            const [category, score] = pair.split(':').map(item => item.trim());
-            categories.push(category);
-            scores[category] = parseFloat(score) / 100;
+            const [category, score] = pair.split(':');
+            scores[category.trim()] = parseInt(score.trim(), 10) || 50;
         });
-        const newModule = new AIModule(name, categories, url, scores);
+        
+        // Create new module
+        const newModule = new AIModule(name, categories, url, scores, false);
         this.modules.push(newModule);
-        this.positionModules();
+        
+        // Reset form
         document.getElementById('moduleName').value = '';
         document.getElementById('moduleUrl').value = '';
         document.getElementById('moduleCategories').value = '';
-        document.querySelector('#addModule + .dropdown-content').classList.remove('show');
-    }
-
-    editModule(module) {
-        document.getElementById('editModuleName').value = module.name;
-        document.getElementById('editModuleUrl').value = module.url;
-        const categoryScores = Object.entries(module.scores)
-            .map(([category, score]) => `${category}:${Math.round(score * 100)}`)
-            .join(', ');
-        document.getElementById('editModuleCategories').value = categoryScores;
-        document.getElementById('editModuleDropdown').classList.add('show');
-        this.selectedModule = module;
-    }
-
-    updateModule() {
-        if (!this.selectedModule) return;
-        const name = document.getElementById('editModuleName').value;
-        const url = document.getElementById('editModuleUrl').value;
-        const categoriesInput = document.getElementById('editModuleCategories').value;
-        if (!name || !url || !categoriesInput) {
-            alert('Please fill in all fields');
-            return;
-        }
-        const categoryPairs = categoriesInput.split(',').map(pair => pair.trim());
-        const categories = [];
-        const scores = {};
-        categoryPairs.forEach(pair => {
-            const [category, score] = pair.split(':').map(item => item.trim());
-            categories.push(category);
-            scores[category] = parseFloat(score) / 100;
-        });
-        this.selectedModule.name = name;
-        this.selectedModule.url = url;
-        this.selectedModule.categories = categories;
-        this.selectedModule.scores = scores;
+        
+        // Reposition modules
         this.positionModules();
-        document.getElementById('editModuleDropdown').classList.remove('show');
-        this.selectedModule = null;
-        this.isEditMode = false;
-        document.getElementById('editModule').classList.remove('active');
-    }
-
-    deleteModule(module) {
-        if (confirm(`Are you sure you want to delete ${module.name}?`)) {
-            const index = this.modules.indexOf(module);
-            if (index !== -1) {
-                this.modules.splice(index, 1);
-            }
-            this.positionModules();
-            this.isDeleteMode = false;
-            document.getElementById('deleteModule').classList.remove('active');
-        }
-    }
-
-    toggleDarkMode() {
-        this.isDarkMode = !this.isDarkMode;
-        document.body.classList.toggle('dark-mode');
-        document.body.classList.toggle('light-mode');
-        if (this.isDarkMode) {
-            this.bgColor = '#1a1a1a';
-            document.getElementById('bgColor').value = '#1a1a1a';
-        } else {
-            this.bgColor = '#ffffff';
-            document.getElementById('bgColor').value = '#ffffff';
-        }
-        document.body.style.backgroundColor = this.bgColor;
+        
+        alert(`Module "${name}" added successfully`);
     }
 
     saveModulesToFile() {
+        // Convert modules to JSON
         const modulesData = this.modules.map(module => ({
             name: module.name,
             categories: module.categories,
@@ -596,43 +743,45 @@ class ModuleCloud {
             scores: module.scores,
             is_premium: module.isPremium
         }));
+        
+        // Create a Blob with the JSON data
         const blob = new Blob([JSON.stringify(modulesData, null, 2)], { type: 'application/json' });
+        
+        // Create a download link
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'ai_modules.json';
+        a.download = 'ai-modules.json';
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        
+        // Clean up
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 0);
     }
 
     loadModulesFromFile(file) {
-        if (!file) {
-            console.error('No file provided to loadModulesFromFile');
-            return;
-        }
-        console.log('Loading modules from file:', file.name);
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
-                const result = e.target.result;
-                const modulesData = JSON.parse(result);
-                if (!Array.isArray(modulesData)) {
-                    throw new Error('Invalid JSON format: expected an array of modules');
-                }
-                console.log(`Found ${modulesData.length} modules in the file`);
+                const modulesData = JSON.parse(e.target.result);
+                
+                // Create module objects
                 this.modules = modulesData.map(data => 
                     new AIModule(
-                        data.name || 'Unknown Module', 
-                        data.categories || [], 
-                        data.url || '#', 
-                        data.scores || {},
+                        data.name, 
+                        data.categories, 
+                        data.url, 
+                        data.scores,
                         data.is_premium || false
                     )
                 );
+                
+                // Position modules
                 this.positionModules();
-                console.log(`Successfully loaded ${this.modules.length} modules from file`);
+                
                 alert(`Successfully loaded ${this.modules.length} modules`);
             } catch (error) {
                 console.error('Error parsing modules file:', error);
@@ -681,7 +830,7 @@ document.addEventListener('DOMContentLoaded', function() {
             closeBtn.closest('.modal').style.display = 'none';
         });
     });
-    // Premium request button remains unchanged
+    // Premium request button
     document.getElementById('requestPremium').addEventListener('click', () => {
         window.location.href = 'mailto:Eyalizenman@gmail.com?subject=Premium%20Access%20Request&body=I%20would%20like%20to%20upgrade%20to%20premium%20access%20for%20$5%20lifetime%20fee.';
     });
@@ -763,103 +912,90 @@ async function checkUserTierAndLoadModules() {
         console.log('Loading module cloud for authenticated user');
         console.log('User metadata:', user.user_metadata);
         
-        // Check premium status from user_metadata directly
-        const isPremium = user.user_metadata?.is_premium === true;
-        console.log(`User is ${isPremium ? 'premium' : 'free'} tier`);
+        // Check premium status using the enhanced function in moduleDatabase
+        let isPremium = false;
         
-        // If not found in metadata, check the users table directly
-        if (!isPremium) {
-            try {
-                const { data, error } = await window.supabase
-                    .from('users')
-                    .select('is_premium')
-                    .eq('id', user.id)
-                    .single();
-                
-                if (error) {
-                    console.error('Error fetching user data:', error);
-                } else if (data) {
-                    console.log('User data from database:', data);
-                    const dbIsPremium = data.is_premium === true;
-                    console.log(`User premium status from database: ${dbIsPremium}`);
-                    
-                    // Update user metadata if database shows premium but metadata doesn't
-                    if (dbIsPremium && !isPremium) {
-                        const { error: updateError } = await window.supabase.auth.updateUser({
-                            data: { is_premium: true }
-                        });
-                        
-                        if (updateError) {
-                            console.error('Error updating user metadata:', updateError);
-                        } else {
-                            console.log('Updated user metadata to premium');
-                        }
-                    }
-                    
-                    // Use the database value for premium status
-                    loadModuleCloud(dbIsPremium);
-                    showWelcomeMessage(user.email, dbIsPremium);
-                    if (dbIsPremium) {
-                        const loginButton = document.getElementById('loginButton');
-                        if (loginButton) {
-                            loginButton.innerHTML = '⭐ Premium';
-                            loginButton.classList.add('premium-user');
-                        }
-                    } else {
-                        addUpgradeButton();
-                    }
-                    return;
-                }
-            } catch (dbError) {
-                console.error('Exception checking database premium status:', dbError);
-            }
+        if (window.moduleDatabase && typeof window.moduleDatabase.checkPremiumStatus === 'function') {
+            isPremium = await window.moduleDatabase.checkPremiumStatus(user.id);
+            console.log(`User premium status from moduleDatabase check: ${isPremium}`);
+        } else {
+            // Fallback to metadata check
+            isPremium = user.user_metadata?.is_premium === true;
+            console.log(`User premium status from metadata fallback: ${isPremium}`);
         }
         
-        // Fall back to metadata value if database check fails
-        loadModuleCloud(isPremium);
-        showWelcomeMessage(user.email, isPremium);
+        // Update UI based on premium status
         if (isPremium) {
             const loginButton = document.getElementById('loginButton');
             if (loginButton) {
                 loginButton.innerHTML = '⭐ Premium';
                 loginButton.classList.add('premium-user');
             }
-        } else {
-            addUpgradeButton();
         }
+        
+        // Load the module cloud with the correct tier
+        loadModuleCloud(isPremium);
     } catch (error) {
-        console.error('Error in checkUserTierAndLoadModules:', error);
+        console.error('Error checking user tier:', error);
         loadModuleCloud(false);
     }
 }
 
 function loadModuleCloud(isPremium = false) {
-    // Create the ModuleCloud instance only once
+    console.log(`Loading ModuleCloud with premium status: ${isPremium}`);
+    
+    // Initialize ModuleCloud if not already done
     if (!window.moduleCloud) {
         window.moduleCloud = new ModuleCloud();
     }
-    window.moduleCloud.userTier = isPremium ? 'premium' : 'free';
-    console.log(`Loading ${isPremium ? 'premium' : 'free'} tier modules`);
     
-    // Reload modules to ensure correct permissions
-    window.moduleCloud.loadModules();
+    // Set user tier
+    window.moduleCloud.userTier = isPremium ? 'premium' : 'free';
+    console.log(`Set ModuleCloud user tier to ${window.moduleCloud.userTier}`);
+    
+    // Update UI based on premium status
+    if (isPremium) {
+        const loginButton = document.getElementById('loginButton');
+        if (loginButton) {
+            loginButton.innerHTML = '⭐ Premium';
+            loginButton.classList.add('premium-user');
+        }
+    }
 }
 
 function setupDarkModeToggle() {
-    const toggleButton = document.getElementById('toggleMode');
-    toggleButton.addEventListener('click', () => {
-        document.body.classList.toggle('dark-mode');
-        document.body.classList.toggle('light-mode');
-        if (document.body.classList.contains('dark-mode')) {
-            document.body.style.backgroundColor = '#1a1a1a';
-            document.getElementById('bgColor').value = '#1a1a1a';
-        } else {
-            document.body.style.backgroundColor = '#ffffff';
-            document.getElementById('bgColor').value = '#ffffff';
-        }
-        if (window.moduleCloud) {
-            window.moduleCloud.isDarkMode = document.body.classList.contains('dark-mode');
-            window.moduleCloud.bgColor = document.body.style.backgroundColor;
-        }
-    });
+    const toggleModeButton = document.getElementById('toggleMode');
+    if (toggleModeButton) {
+        toggleModeButton.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            
+            if (isDarkMode) {
+                document.body.style.backgroundColor = '#121212';
+                document.getElementById('bgColor').value = '#121212';
+            } else {
+                document.body.style.backgroundColor = '#ffffff';
+                document.getElementById('bgColor').value = '#ffffff';
+            }
+            
+            // Update ModuleCloud if it exists
+            if (window.moduleCloud) {
+                window.moduleCloud.isDarkMode = isDarkMode;
+                window.moduleCloud.bgColor = isDarkMode ? '#121212' : '#ffffff';
+            }
+        });
+    }
 }
+
+function addAdminTools() {
+    // This function can be expanded to add admin-specific tools
+    console.log('Admin tools initialized');
+}
+
+// Security enhancement - Add Content Security Policy header via meta tag
+document.addEventListener('DOMContentLoaded', function() {
+    const meta = document.createElement('meta');
+    meta.httpEquiv = 'Content-Security-Policy';
+    meta.content = "default-src 'self' https://cdn.jsdelivr.net https://*.supabase.co; script-src 'self' https://cdn.jsdelivr.net https://*.supabase.co 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; frame-src 'none';";
+    document.head.appendChild(meta);
+});
