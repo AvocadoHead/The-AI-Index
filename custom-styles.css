@@ -1,0 +1,222 @@
+/* Custom styles for AI Module Cloud */
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal-content {
+    background-color: #1a1a1a;
+    color: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #4a90e2;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Authentication form styles */
+#emailAuthForm {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+#emailAuthForm input {
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #333;
+    background-color: #222;
+    color: #fff;
+}
+
+.auth-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.auth-actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+#signInButton {
+    background-color: #4a90e2;
+    color: white;
+}
+
+#signInButton:hover {
+    background-color: #3a80d2;
+}
+
+#signUpButton {
+    background-color: #333;
+    color: white;
+}
+
+#signUpButton:hover {
+    background-color: #444;
+}
+
+/* Premium modal styles */
+.payment-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.payment-option {
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #222;
+}
+
+.payment-option h3 {
+    margin-top: 0;
+    color: #4a90e2;
+    font-size: 18px;
+}
+
+.bit-button {
+    background-color: #0089e0;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.bit-button:hover {
+    background-color: #0073b7;
+}
+
+#requestPremium {
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+#requestPremium:hover {
+    background-color: #3a80d2;
+}
+
+/* Premium user indicator */
+.premium-user {
+    background-color: #ffd700 !important;
+    color: #333 !important;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.premium-user i {
+    margin-right: 5px;
+    color: #333;
+}
+
+/* Fix for login button */
+#loginButton {
+    margin-right: 5px;
+    min-width: 60px;
+}
+
+/* Fix for controls layout */
+.controls .file-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: flex-start;
+}
+
+/* Improve dropdown visibility */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #1a1a1a;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1000;
+    padding: 12px;
+    border-radius: 4px;
+    border: 1px solid #333;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Improve tooltip visibility */
+.tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 1000;
+    max-width: 300px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip.visible {
+    opacity: 1;
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+    }
+    
+    .controls .file-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .sidebar {
+        width: 80%;
+    }
+}
